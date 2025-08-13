@@ -7,10 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
   Input,
   Select,
   SelectContent,
@@ -25,6 +21,7 @@ import {
   TableRow,
 } from "../components"
 import CommentForm from "../components/CommentForm"
+import PostDetailDialog from "../components/PostDetailDialog"
 import PostForm from "../components/PostForm"
 import UserModal from "../components/UserModal"
 
@@ -617,17 +614,14 @@ const PostsManager = () => {
       />
 
       {/* 게시물 상세 보기 대화상자 */}
-      <Dialog open={showPostDetailDialog} onOpenChange={setShowPostDetailDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{highlightText(selectedPost?.title, searchQuery)}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p>{highlightText(selectedPost?.body, searchQuery)}</p>
-            {renderComments(selectedPost?.id)}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PostDetailDialog
+        post={selectedPost}
+        isOpen={showPostDetailDialog}
+        onClose={() => setShowPostDetailDialog(false)}
+        searchQuery={searchQuery}
+        highlightText={highlightText}
+        renderComments={renderComments}
+      />
 
       {/* 사용자 모달 */}
       <UserModal user={selectedUser} isOpen={showUserModal} onClose={() => setShowUserModal(false)} />
