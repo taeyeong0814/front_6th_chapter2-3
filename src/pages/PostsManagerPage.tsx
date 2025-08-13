@@ -23,8 +23,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Textarea,
 } from "../components"
+import CommentForm from "../components/CommentForm"
+import PostForm from "../components/PostForm"
 import UserModal from "../components/UserModal"
 
 const PostsManager = () => {
@@ -571,91 +572,49 @@ const PostsManager = () => {
         </div>
       </CardContent>
 
-      {/* 게시물 추가 대화상자 */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>새 게시물 추가</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="제목"
-              value={newPost.title}
-              onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-            />
-            <Textarea
-              rows={30}
-              placeholder="내용"
-              value={newPost.body}
-              onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
-            />
-            <Input
-              type="number"
-              placeholder="사용자 ID"
-              value={newPost.userId}
-              onChange={(e) => setNewPost({ ...newPost, userId: Number(e.target.value) })}
-            />
-            <Button onClick={addPost}>게시물 추가</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* 게시물 폼 */}
+      <PostForm
+        post={newPost}
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onSubmit={addPost}
+        onTitleChange={(title) => setNewPost({ ...newPost, title })}
+        onBodyChange={(body) => setNewPost({ ...newPost, body })}
+        onUserIdChange={(userId) => setNewPost({ ...newPost, userId })}
+        isEdit={false}
+      />
 
-      {/* 게시물 수정 대화상자 */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>게시물 수정</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="제목"
-              value={selectedPost?.title || ""}
-              onChange={(e) => setSelectedPost({ ...selectedPost, title: e.target.value })}
-            />
-            <Textarea
-              rows={15}
-              placeholder="내용"
-              value={selectedPost?.body || ""}
-              onChange={(e) => setSelectedPost({ ...selectedPost, body: e.target.value })}
-            />
-            <Button onClick={updatePost}>게시물 업데이트</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* 게시물 수정 폼 */}
+      <PostForm
+        post={selectedPost}
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSubmit={updatePost}
+        onTitleChange={(title) => setSelectedPost({ ...selectedPost, title })}
+        onBodyChange={(body) => setSelectedPost({ ...selectedPost, body })}
+        onUserIdChange={(userId) => setSelectedPost({ ...selectedPost, userId })}
+        isEdit={true}
+      />
 
       {/* 댓글 추가 대화상자 */}
-      <Dialog open={showAddCommentDialog} onOpenChange={setShowAddCommentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>새 댓글 추가</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="댓글 내용"
-              value={newComment.body}
-              onChange={(e) => setNewComment({ ...newComment, body: e.target.value })}
-            />
-            <Button onClick={addComment}>댓글 추가</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CommentForm
+        comment={newComment}
+        isOpen={showAddCommentDialog}
+        onClose={() => setShowAddCommentDialog(false)}
+        onSubmit={addComment}
+        onBodyChange={(body) => setNewComment({ ...newComment, body })}
+        isEdit={false}
+      />
 
       {/* 댓글 수정 대화상자 */}
-      <Dialog open={showEditCommentDialog} onOpenChange={setShowEditCommentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>댓글 수정</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="댓글 내용"
-              value={selectedComment?.body || ""}
-              onChange={(e) => setSelectedComment({ ...selectedComment, body: e.target.value })}
-            />
-            <Button onClick={updateComment}>댓글 업데이트</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CommentForm
+        comment={selectedComment}
+        isOpen={showEditCommentDialog}
+        onClose={() => setShowEditCommentDialog(false)}
+        onSubmit={updateComment}
+        onBodyChange={(body) => setSelectedComment({ ...selectedComment, body })}
+        isEdit={true}
+      />
 
       {/* 게시물 상세 보기 대화상자 */}
       <Dialog open={showPostDetailDialog} onOpenChange={setShowPostDetailDialog}>
