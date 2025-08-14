@@ -35,8 +35,10 @@ const deleteCommentAPI = async (id: number) => {
 }
 
 const likeCommentAPI = async (id: number) => {
-  const response = await fetch(`/api/comments/${id}/like`, {
-    method: "POST",
+  const response = await fetch(`/api/comments/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ likes: 1 }), // 좋아요 증가
   })
   return response.json()
 }
@@ -78,8 +80,14 @@ export const useComments = (): UseCommentsReturn => {
   const addCommentMutation = useMutation({
     mutationFn: addCommentAPI,
     onSuccess: (data) => {
-      // 특정 게시물의 댓글 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["comments"], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          [data.postId]: [...(oldData[data.postId] || []), data],
+        }
+      })
       setShowAddCommentDialog(false)
       resetNewComment()
     },
@@ -92,8 +100,14 @@ export const useComments = (): UseCommentsReturn => {
   const updateCommentMutation = useMutation({
     mutationFn: updateCommentAPI,
     onSuccess: (data) => {
-      // 특정 게시물의 댓글 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["comments"], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          [data.postId]: oldData[data.postId]?.map((comment: any) => (comment.id === data.id ? data : comment)) || [],
+        }
+      })
       setShowEditCommentDialog(false)
     },
     onError: (error) => {
@@ -104,9 +118,16 @@ export const useComments = (): UseCommentsReturn => {
   // 댓글 삭제 (useMutation)
   const deleteCommentMutation = useMutation({
     mutationFn: deleteCommentAPI,
-    onSuccess: () => {
-      // 모든 댓글 캐시 무효화 (삭제된 댓글 ID로 postId를 알 수 없으므로)
-      queryClient.invalidateQueries({ queryKey: ["comments"] })
+    onSuccess: (_, deletedId) => {
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["comments"], (oldData: any) => {
+        if (!oldData) return oldData
+        const newData = { ...oldData }
+        Object.keys(newData).forEach((postId) => {
+          newData[postId] = newData[postId].filter((comment: any) => comment.id !== deletedId)
+        })
+        return newData
+      })
     },
     onError: (error) => {
       console.error("댓글 삭제 오류:", error)
@@ -117,8 +138,17 @@ export const useComments = (): UseCommentsReturn => {
   const likeCommentMutation = useMutation({
     mutationFn: likeCommentAPI,
     onSuccess: (data) => {
-      // 특정 게시물의 댓글 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["comments"], (oldData: any) => {
+        if (!oldData) return oldData
+        const newData = { ...oldData }
+        Object.keys(newData).forEach((postId) => {
+          newData[postId] = newData[postId].map((comment: any) =>
+            comment.id === data.id ? { ...data, likes: comment.likes + 1 } : comment,
+          )
+        })
+        return newData
+      })
     },
     onError: (error) => {
       console.error("댓글 좋아요 오류:", error)
@@ -165,12 +195,12 @@ export const useComments = (): UseCommentsReturn => {
   }
 
   // 댓글 삭제
-  const deleteComment = (id: number) => {
+  const deleteComment = (id: number, _postId?: number) => {
     deleteCommentMutation.mutate(id)
   }
 
   // 댓글 좋아요
-  const likeComment = (id: number) => {
+  const likeComment = (id: number, _postId?: number) => {
     likeCommentMutation.mutate(id)
   }
 

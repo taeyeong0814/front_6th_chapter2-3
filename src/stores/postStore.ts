@@ -15,6 +15,10 @@ interface PostState {
   sortBy: string
   sortOrder: string
 
+  // 검색 결과 상태
+  searchResults: Post[] | null
+  isSearchActive: boolean
+
   // 액션들
   setSelectedPost: (post: Post | null) => void
   setNewPost: (post: PostFormData) => void
@@ -27,6 +31,10 @@ interface PostState {
   setSortBy: (sortBy: string) => void
   setSortOrder: (sortOrder: string) => void
   resetFilters: () => void
+
+  // 검색 액션
+  searchPosts: (query: string) => Promise<void>
+  clearSearch: () => void
 }
 
 // 초기 새 게시물 데이터
@@ -45,6 +53,8 @@ export const usePostStore = create<PostState>((set) => ({
   selectedTag: "",
   sortBy: "",
   sortOrder: "asc",
+  searchResults: null,
+  isSearchActive: false,
 
   // 액션들
   setSelectedPost: (post) => set({ selectedPost: post }),
@@ -71,4 +81,31 @@ export const usePostStore = create<PostState>((set) => ({
       sortBy: "",
       sortOrder: "asc",
     }),
+
+  // 검색 액션
+  searchPosts: async (query: string) => {
+    if (!query.trim()) {
+      set({ searchResults: null, isSearchActive: false })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/posts/search?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+
+      // 검색 결과를 상태에 저장
+      set({
+        searchResults: data.posts || [],
+        isSearchActive: true,
+      })
+    } catch (error) {
+      console.error("검색 오류:", error)
+      set({ searchResults: [], isSearchActive: true })
+    }
+  },
+
+  // 검색 초기화
+  clearSearch: () => {
+    set({ searchResults: null, isSearchActive: false })
+  },
 }))

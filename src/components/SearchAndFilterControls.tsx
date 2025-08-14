@@ -5,8 +5,18 @@ import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } 
 
 const SearchAndFilterControls = () => {
   // Zustand 스토어 직접 사용
-  const { searchQuery, selectedTag, sortBy, sortOrder, setSearchQuery, setSelectedTag, setSortBy, setSortOrder } =
-    usePostStore()
+  const {
+    searchQuery,
+    selectedTag,
+    sortBy,
+    sortOrder,
+    setSearchQuery,
+    setSelectedTag,
+    setSortBy,
+    setSortOrder,
+    searchPosts,
+    clearSearch,
+  } = usePostStore()
 
   // 태그 목록 상태
   const [tags, setTags] = useState<Array<{ slug: string; name: string; url: string }>>([])
@@ -33,12 +43,30 @@ const SearchAndFilterControls = () => {
             placeholder="게시물 검색..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && console.log("검색 실행")}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const query = e.currentTarget.value.trim()
+                if (query) {
+                  searchPosts(query)
+                } else {
+                  clearSearch()
+                }
+              }
+            }}
           />
         </div>
       </div>
-      <Select value={selectedTag} onValueChange={setSelectedTag}>
+      <Select
+        value={selectedTag}
+        onValueChange={(tag) => {
+          setSelectedTag(tag)
+          // 태그 선택 시 검색 결과 초기화
+          clearSearch()
+        }}
+      >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="태그 선택" />
         </SelectTrigger>

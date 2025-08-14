@@ -4,7 +4,7 @@ import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textar
 
 const PostForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   // Zustand 스토어 직접 사용
-  const { newPost, selectedPost, updateNewPost } = usePostStore()
+  const { newPost, selectedPost, updateNewPost, setSelectedPost } = usePostStore()
   const { showAddPostDialog, showEditPostDialog, setShowAddPostDialog, setShowEditPostDialog } = useUIStore()
 
   // 커스텀 훅에서 API 로직 가져오기
@@ -23,12 +23,28 @@ const PostForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           <DialogTitle>{isEdit ? "게시물 수정" : "새 게시물 추가"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Input placeholder="제목" value={post.title} onChange={(e) => updateNewPost({ title: e.target.value })} />
+          <Input
+            placeholder="제목"
+            value={post.title}
+            onChange={(e) => {
+              if (isEdit) {
+                setSelectedPost({ ...selectedPost!, title: e.target.value })
+              } else {
+                updateNewPost({ title: e.target.value })
+              }
+            }}
+          />
           <Textarea
             rows={isEdit ? 15 : 30}
             placeholder="내용"
             value={post.body}
-            onChange={(e) => updateNewPost({ body: e.target.value })}
+            onChange={(e) => {
+              if (isEdit) {
+                setSelectedPost({ ...selectedPost!, body: e.target.value })
+              } else {
+                updateNewPost({ body: e.target.value })
+              }
+            }}
           />
           {!isEdit && (
             <Input

@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react"
 import { useEffect } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { Button, Card, CardContent, CardHeader, CardTitle, PostTable } from "../components"
 import CommentForm from "../components/CommentForm"
 import Pagination from "../components/Pagination"
@@ -13,9 +13,10 @@ import { usePostStore, useUIStore } from "../stores"
 
 const PostsManager = () => {
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Zustand 스토어 직접 사용
-  const { searchQuery, selectedTag, setSearchQuery, setSelectedTag, setSortBy, setSortOrder } = usePostStore()
+  const { searchQuery, selectedTag, sortBy, sortOrder, setSelectedTag, setSortBy, setSortOrder } = usePostStore()
 
   const { setShowAddPostDialog: setShowAddDialog } = useUIStore()
 
@@ -23,14 +24,29 @@ const PostsManager = () => {
   const { skip, limit, setSkip, setLimit } = usePagination()
   const { total, loading } = usePosts(skip, limit, searchQuery, selectedTag)
 
-  // URL 파라미터 동기화
+  // URL 업데이트 함수
+  const updateURL = () => {
+    const params = new URLSearchParams()
+    if (skip) params.set("skip", skip.toString())
+    if (limit) params.set("limit", limit.toString())
+    if (selectedTag) params.set("tag", selectedTag)
+    if (sortBy) params.set("sortBy", sortBy)
+    if (sortOrder) params.set("sortOrder", sortOrder)
+    navigate(`?${params.toString()}`)
+  }
+
+  // URL 파라미터 동기화 (URL → 상태)
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    setSearchQuery(params.get("search") || "")
     setSortBy(params.get("sortBy") || "")
     setSortOrder(params.get("sortOrder") || "asc")
     setSelectedTag(params.get("tag") || "")
-  }, [location.search, setSearchQuery, setSortBy, setSortOrder, setSelectedTag])
+  }, [location.search, setSortBy, setSortOrder, setSelectedTag])
+
+  // 상태 변경 시 URL 업데이트 (상태 → URL)
+  useEffect(() => {
+    updateURL()
+  }, [skip, limit, selectedTag, sortBy, sortOrder])
 
   return (
     <Card className="w-full max-w-6xl mx-auto">

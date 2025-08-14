@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 import { usePostStore, useUIStore } from "../stores"
 import type { Post, PostFormData } from "../types"
 
@@ -118,7 +119,7 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
       }
       return fetchPostsAPI(skip, limit)
     },
-    enabled: !searchQuery, // 검색 중일 때는 비활성화
+    enabled: true, // 항상 활성화
   })
 
   // 게시물 검색 (useQuery)
@@ -129,20 +130,41 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
   } = useQuery({
     queryKey: ["posts", "search", searchQuery],
     queryFn: () => searchPostsAPI(searchQuery),
-    enabled: !!searchQuery, // 검색어가 있을 때만 활성화
+    enabled: false, // 수동으로만 호출
   })
 
-  // 현재 표시할 데이터 결정
-  const currentData = searchQuery ? searchData : postsData
+  // 검색 실행 상태 관리
+  const [isSearchActive, setIsSearchActive] = useState(false)
+
+  // 현재 표시할 데이터 결정 (검색이 활성화되었을 때만 검색 데이터 사용)
+  const currentData = isSearchActive && searchData && searchData.posts ? searchData : postsData
   const posts = currentData?.posts || []
   const total = currentData?.total || 0
-  const isLoading = searchQuery ? searchLoading : loading
+  const isLoading = searchLoading || loading
+
+  // 디버깅 로그
+  console.log("📊 데이터 상태:", {
+    isSearchActive,
+    searchData: searchData?.posts?.length || 0,
+    postsData: postsData?.posts?.length || 0,
+    currentPosts: posts.length,
+    searchQuery,
+    selectedTag,
+  })
 
   // 게시물 추가 (useMutation)
   const addPostMutation = useMutation({
     mutationFn: addPostAPI,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] })
+    onSuccess: (data) => {
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          posts: [data, ...oldData.posts],
+          total: oldData.total + 1,
+        }
+      })
       setShowAddDialog(false)
       resetNewPost()
     },
@@ -154,8 +176,15 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
   // 게시물 수정 (useMutation)
   const updatePostMutation = useMutation({
     mutationFn: updatePostAPI,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] })
+    onSuccess: (data) => {
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          posts: oldData.posts.map((post: any) => (post.id === data.id ? data : post)),
+        }
+      })
       setShowEditDialog(false)
     },
     onError: (error) => {
@@ -166,8 +195,16 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
   // 게시물 삭제 (useMutation)
   const deletePostMutation = useMutation({
     mutationFn: deletePostAPI,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] })
+    onSuccess: (_, deletedId) => {
+      // 직접 캐시 업데이트 (원본 방식과 동일)
+      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          posts: oldData.posts.filter((post: any) => post.id !== deletedId),
+          total: oldData.total - 1,
+        }
+      })
     },
     onError: (error) => {
       console.error("게시물 삭제 오류:", error)
@@ -177,8 +214,10 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
   // 게시물 검색
   const searchPosts = (query: string) => {
     if (query) {
+      setIsSearchActive(true)
       refetchSearch()
     } else {
+      setIsSearchActive(false)
       refetchPosts()
     }
   }

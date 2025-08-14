@@ -6,7 +6,7 @@ import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow }
 
 export const PostTable: React.FC = () => {
   // Zustand 스토어 직접 사용
-  const { searchQuery, selectedTag, setSelectedPost, setSelectedTag } = usePostStore()
+  const { searchQuery, selectedTag, setSelectedPost, setSelectedTag, searchResults, isSearchActive } = usePostStore()
 
   const { setShowPostDetailDialog, setShowEditPostDialog } = useUIStore()
 
@@ -14,7 +14,10 @@ export const PostTable: React.FC = () => {
   const { setShowUserModal } = useUIStore()
 
   // 커스텀 훅에서 데이터 가져오기
-  const { posts, deletePost } = usePosts(0, 10, searchQuery, selectedTag)
+  const { posts: originalPosts, deletePost } = usePosts(0, 10, searchQuery, selectedTag)
+
+  // 검색 결과가 있으면 검색 결과를, 없으면 원본 게시물 목록을 사용
+  const posts = isSearchActive && searchResults ? searchResults : originalPosts
   const { highlightText } = useSearchAndFilter()
   const { fetchComments } = useComments()
 
