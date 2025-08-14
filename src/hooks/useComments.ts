@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
 interface Comment {
@@ -10,6 +11,45 @@ interface Comment {
     id: number
     username: string
   }
+}
+
+// API 함수들
+const fetchCommentsAPI = async (postId: number) => {
+  const response = await fetch(`/api/comments/post/${postId}`)
+  const data = await response.json()
+  return data.comments
+}
+
+const addCommentAPI = async (comment: { body: string; postId: number; userId: number }) => {
+  const response = await fetch("/api/comments/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(comment),
+  })
+  return response.json()
+}
+
+const updateCommentAPI = async (comment: { id: number; body: string }) => {
+  const response = await fetch(`/api/comments/${comment.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body: comment.body }),
+  })
+  return response.json()
+}
+
+const deleteCommentAPI = async (id: number) => {
+  await fetch(`/api/comments/${id}`, {
+    method: "DELETE",
+  })
+  return id
+}
+
+const likeCommentAPI = async (id: number) => {
+  const response = await fetch(`/api/comments/${id}/like`, {
+    method: "POST",
+  })
+  return response.json()
 }
 
 interface UseCommentsReturn {
@@ -30,105 +70,114 @@ interface UseCommentsReturn {
 }
 
 export const useComments = (): UseCommentsReturn => {
-  const [comments, setComments] = useState<{ [postId: number]: Comment[] }>({})
+  const queryClient = useQueryClient()
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null)
-  const [newComment, setNewComment] = useState({ body: "", postId: null, userId: 1 })
+  const [newComment, setNewComment] = useState({ body: "", postId: null as number | null, userId: 1 })
   const [showAddCommentDialog, setShowAddCommentDialog] = useState(false)
   const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
 
+  // 댓글 목록 조회 (useQuery)
+  const { data: commentsData = {} } = useQuery({
+    queryKey: ["comments"],
+    queryFn: () => Promise.resolve({}), // 초기에는 빈 객체
+    enabled: false, // 수동으로만 호출
+  })
+
+  // 댓글 추가 (useMutation)
+  const addCommentMutation = useMutation({
+    mutationFn: addCommentAPI,
+    onSuccess: (data) => {
+      // 특정 게시물의 댓글 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+      setShowAddCommentDialog(false)
+      setNewComment({ body: "", postId: null, userId: 1 })
+    },
+    onError: (error) => {
+      console.error("댓글 추가 오류:", error)
+    },
+  })
+
+  // 댓글 수정 (useMutation)
+  const updateCommentMutation = useMutation({
+    mutationFn: updateCommentAPI,
+    onSuccess: (data) => {
+      // 특정 게시물의 댓글 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+      setShowEditCommentDialog(false)
+    },
+    onError: (error) => {
+      console.error("댓글 수정 오류:", error)
+    },
+  })
+
+  // 댓글 삭제 (useMutation)
+  const deleteCommentMutation = useMutation({
+    mutationFn: deleteCommentAPI,
+    onSuccess: () => {
+      // 모든 댓글 캐시 무효화 (삭제된 댓글 ID로 postId를 알 수 없으므로)
+      queryClient.invalidateQueries({ queryKey: ["comments"] })
+    },
+    onError: (error) => {
+      console.error("댓글 삭제 오류:", error)
+    },
+  })
+
+  // 댓글 좋아요 (useMutation)
+  const likeCommentMutation = useMutation({
+    mutationFn: likeCommentAPI,
+    onSuccess: (data) => {
+      // 특정 게시물의 댓글 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
+    },
+    onError: (error) => {
+      console.error("댓글 좋아요 오류:", error)
+    },
+  })
+
   // 댓글 가져오기
   const fetchComments = async (postId: number) => {
-    if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
-    try {
-      const response = await fetch(`/api/comments/post/${postId}`)
-      const data = await response.json()
-      setComments((prev) => ({ ...prev, [postId]: data.comments }))
-    } catch (error) {
-      console.error("댓글 가져오기 오류:", error)
-    }
+    // 이미 캐시에 있는지 확인
+    const cachedData = queryClient.getQueryData(["comments", postId])
+    if (cachedData) return
+
+    // 캐시에 없으면 새로 요청
+    const comments = await fetchCommentsAPI(postId)
+    queryClient.setQueryData(["comments", postId], comments)
   }
 
   // 댓글 추가
-  const addComment = async () => {
-    if (!newComment.postId) return
-    try {
-      const response = await fetch("/api/comments/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newComment),
+  const addComment = () => {
+    if (newComment.postId) {
+      addCommentMutation.mutate({
+        body: newComment.body,
+        postId: newComment.postId,
+        userId: newComment.userId,
       })
-      const data = await response.json()
-      setComments((prev) => ({
-        ...prev,
-        [data.postId]: [...(prev[data.postId] || []), data],
-      }))
-      setShowAddCommentDialog(false)
-      setNewComment({ body: "", postId: null, userId: 1 })
-    } catch (error) {
-      console.error("댓글 추가 오류:", error)
     }
   }
 
   // 댓글 업데이트
-  const updateComment = async () => {
-    if (!selectedComment) return
-    try {
-      const response = await fetch(`/api/comments/${selectedComment.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: selectedComment.body }),
+  const updateComment = () => {
+    if (selectedComment) {
+      updateCommentMutation.mutate({
+        id: selectedComment.id,
+        body: selectedComment.body,
       })
-      const data = await response.json()
-      setComments((prev) => ({
-        ...prev,
-        [data.postId]: prev[data.postId].map((comment) => (comment.id === data.id ? data : comment)),
-      }))
-      setShowEditCommentDialog(false)
-    } catch (error) {
-      console.error("댓글 업데이트 오류:", error)
     }
   }
 
   // 댓글 삭제
-  const deleteComment = async (id: number, postId: number) => {
-    try {
-      await fetch(`/api/comments/${id}`, {
-        method: "DELETE",
-      })
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].filter((comment) => comment.id !== id),
-      }))
-    } catch (error) {
-      console.error("댓글 삭제 오류:", error)
-    }
+  const deleteComment = (id: number) => {
+    deleteCommentMutation.mutate(id)
   }
 
   // 댓글 좋아요
-  const likeComment = async (id: number, postId: number) => {
-    try {
-      const currentComment = comments[postId]?.find((c) => c.id === id)
-      if (!currentComment) return
-
-      const response = await fetch(`/api/comments/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ likes: currentComment.likes + 1 }),
-      })
-      const data = await response.json()
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].map((comment) =>
-          comment.id === data.id ? { ...data, likes: comment.likes + 1 } : comment,
-        ),
-      }))
-    } catch (error) {
-      console.error("댓글 좋아요 오류:", error)
-    }
+  const likeComment = (id: number) => {
+    likeCommentMutation.mutate(id)
   }
 
   return {
-    comments,
+    comments: commentsData,
     selectedComment,
     newComment,
     showAddCommentDialog,
