@@ -1,6 +1,6 @@
 import { Edit2, MessageSquare, Trash2 } from "lucide-react"
 import React from "react"
-import { Button } from "./ui"
+import { Button } from "./index"
 
 interface Post {
   id: number

@@ -1,6 +1,6 @@
 import { Edit2, Plus, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import { Button } from "./ui"
+import { Button } from "./index"
 
 interface Comment {
   id: number

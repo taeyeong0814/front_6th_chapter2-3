@@ -1,6 +1,6 @@
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./index"
 
 interface Post {
   id: number
