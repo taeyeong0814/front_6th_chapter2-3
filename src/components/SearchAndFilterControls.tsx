@@ -1,5 +1,6 @@
 import { Search } from "lucide-react"
 import { useEffect, useState } from "react"
+import { usePosts } from "../hooks"
 import { usePostStore } from "../stores"
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./index"
 
@@ -17,6 +18,9 @@ const SearchAndFilterControls = () => {
     searchPosts,
     clearSearch,
   } = usePostStore()
+
+  // usePosts 훅에서 refetchPosts 가져오기
+  const { refetchPosts } = usePosts(0, 10, searchQuery, selectedTag, sortOrder)
 
   // 태그 목록 상태
   const [tags, setTags] = useState<Array<{ slug: string; name: string; url: string }>>([])
@@ -53,6 +57,8 @@ const SearchAndFilterControls = () => {
                   searchPosts(query)
                 } else {
                   clearSearch()
+                  // 빈 값일 때는 전체 데이터를 다시 가져오기
+                  refetchPosts()
                 }
               }
             }}

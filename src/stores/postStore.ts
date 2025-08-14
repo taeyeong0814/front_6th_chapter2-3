@@ -87,6 +87,7 @@ export const usePostStore = create<PostState>((set) => ({
   // 검색 액션
   searchPosts: async (query: string) => {
     if (!query.trim()) {
+      // 빈 값일 때는 검색 결과를 초기화하고 전체 데이터를 보여주도록 함
       set({ searchResults: null, isSearchActive: false, hasSearched: false })
       return
     }

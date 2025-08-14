@@ -6,8 +6,17 @@ import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow }
 
 export const PostTable: React.FC = () => {
   // Zustand 스토어 직접 사용
-  const { searchQuery, selectedTag, setSelectedPost, setSelectedTag, searchResults, isSearchActive, hasSearched } =
-    usePostStore()
+  const {
+    searchQuery,
+    selectedTag,
+    sortBy,
+    sortOrder,
+    setSelectedPost,
+    setSelectedTag,
+    searchResults,
+    isSearchActive,
+    hasSearched,
+  } = usePostStore()
 
   const { setShowPostDetailDialog, setShowEditPostDialog } = useUIStore()
 
@@ -15,10 +24,44 @@ export const PostTable: React.FC = () => {
   const { setShowUserModal } = useUIStore()
 
   // 커스텀 훅에서 데이터 가져오기
-  const { posts: originalPosts, deletePost } = usePosts(0, 10, searchQuery, selectedTag)
+  const { posts: originalPosts, deletePost } = usePosts(0, 10, searchQuery, selectedTag, sortOrder)
 
   // 실제로 검색을 실행했을 때만 검색 결과를 사용
   const posts = hasSearched && isSearchActive && searchResults ? searchResults : originalPosts
+
+  // 클라이언트 사이드 정렬
+  const sortedPosts = React.useMemo(() => {
+    if (!sortBy || sortBy === "none") return posts
+
+    return [...posts].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+
+      switch (sortBy) {
+        case "id":
+          aValue = a.id
+          bValue = b.id
+          break
+        case "title":
+          aValue = a.title.toLowerCase()
+          bValue = b.title.toLowerCase()
+          break
+        case "reactions":
+          aValue = (a.reactions?.likes || 0) + (a.reactions?.dislikes || 0)
+          bValue = (b.reactions?.likes || 0) + (b.reactions?.dislikes || 0)
+          break
+        default:
+          return 0
+      }
+
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+  }, [posts, sortBy, sortOrder])
+
   const { highlightText } = useSearchAndFilter()
   const { fetchComments } = useComments()
 
@@ -66,7 +109,7 @@ export const PostTable: React.FC = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {posts.map((post) => (
+        {sortedPosts.map((post) => (
           <TableRow key={post.id}>
             <TableCell>{post.id}</TableCell>
             <TableCell>

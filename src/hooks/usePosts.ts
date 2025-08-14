@@ -80,6 +80,7 @@ interface UsePostsReturn {
   showPostDetailDialog: boolean
   searchPosts: (query: string) => void
   fetchPostsByTag: (tag: string) => void
+  refetchPosts: () => void
   addPost: () => void
   updatePost: () => void
   deletePost: (id: number) => void
@@ -91,7 +92,13 @@ interface UsePostsReturn {
   setShowPostDetailDialog: (show: boolean) => void
 }
 
-export const usePosts = (skip: number, limit: number, searchQuery: string, selectedTag: string): UsePostsReturn => {
+export const usePosts = (
+  skip: number,
+  limit: number,
+  searchQuery: string,
+  selectedTag: string,
+  sortOrder?: string,
+): UsePostsReturn => {
   const queryClient = useQueryClient()
 
   // Zustand 스토어 사용
@@ -112,7 +119,7 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
     isLoading: loading,
     refetch: refetchPosts,
   } = useQuery({
-    queryKey: ["posts", skip, limit, selectedTag],
+    queryKey: ["posts", skip, limit, selectedTag, sortOrder], // sortBy 제거
     queryFn: () => {
       if (selectedTag && selectedTag !== "all") {
         return fetchPostsByTagAPI(selectedTag)
@@ -213,11 +220,12 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
 
   // 게시물 검색
   const searchPosts = (query: string) => {
-    if (query) {
+    if (query.trim()) {
       setIsSearchActive(true)
       refetchSearch()
     } else {
       setIsSearchActive(false)
+      // 빈 값일 때는 전체 데이터를 다시 가져오기
       refetchPosts()
     }
   }
@@ -265,6 +273,7 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
     showPostDetailDialog,
     searchPosts,
     fetchPostsByTag,
+    refetchPosts,
     addPost,
     updatePost,
     deletePost,
