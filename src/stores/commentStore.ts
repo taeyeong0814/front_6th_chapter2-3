@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { Comment } from "../types"
+import type { Comment } from "../shared/types"
 
 // 댓글 상태 인터페이스
 interface CommentState {

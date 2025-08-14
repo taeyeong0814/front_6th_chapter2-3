@@ -1,6 +1,6 @@
 import { usePosts } from "../hooks"
-import { usePostStore, useUIStore } from "../stores"
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea } from "./index"
+import { usePostStore, useUIStore } from "../shared/stores"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea } from "../shared/ui"
 
 const PostForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   // Zustand 스토어 직접 사용

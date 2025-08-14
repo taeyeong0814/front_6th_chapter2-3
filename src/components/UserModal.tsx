@@ -1,5 +1,5 @@
-import { useUIStore, useUserStore } from "../stores"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./index"
+import { useUIStore, useUserStore } from "../shared/stores"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../shared/ui"
 
 const UserModal = () => {
   // Zustand 스토어 직접 사용

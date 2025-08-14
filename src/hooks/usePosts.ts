@@ -1,73 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { usePostStore, useUIStore } from "../stores"
-import type { Post, PostFormData } from "../types"
-
-// API 함수들
-const fetchPostsAPI = async (skip: number, limit: number) => {
-  const [postsResponse, usersResponse] = await Promise.all([
-    fetch(`/api/posts?limit=${limit}&skip=${skip}`),
-    fetch("/api/users?limit=0&select=username,image"),
-  ])
-
-  const postsData = await postsResponse.json()
-  const usersData = await usersResponse.json()
-
-  const postsWithUsers = postsData.posts.map((post: Post) => ({
-    ...post,
-    author: usersData.users.find((user: { id: number; username: string; image: string }) => user.id === post.userId),
-  }))
-
-  return { posts: postsWithUsers, total: postsData.total }
-}
-
-const searchPostsAPI = async (query: string) => {
-  const response = await fetch(`/api/posts/search?q=${query}`)
-  const data = await response.json()
-  return data
-}
-
-const fetchPostsByTagAPI = async (tag: string) => {
-  const [postsResponse, usersResponse] = await Promise.all([
-    fetch(`/api/posts/tag/${tag}`),
-    fetch("/api/users?limit=0&select=username,image"),
-  ])
-
-  const postsData = await postsResponse.json()
-  const usersData = await usersResponse.json()
-
-  const postsWithUsers = postsData.posts.map((post: Post) => ({
-    ...post,
-    author: usersData.users.find((user: { id: number; username: string; image: string }) => user.id === post.userId),
-  }))
-
-  return { posts: postsWithUsers, total: postsData.total }
-}
-
-const addPostAPI = async (post: PostFormData) => {
-  const response = await fetch("/api/posts/add", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(post),
-  })
-  return response.json()
-}
-
-const updatePostAPI = async (post: Post) => {
-  const response = await fetch(`/api/posts/${post.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(post),
-  })
-  return response.json()
-}
-
-const deletePostAPI = async (id: number) => {
-  await fetch(`/api/posts/${id}`, {
-    method: "DELETE",
-  })
-  return id
-}
+import {
+  addPostAPI,
+  deletePostAPI,
+  fetchPostsAPI,
+  fetchPostsByTagAPI,
+  searchPostsAPI,
+  updatePostAPI,
+} from "../shared/api"
+import { usePostStore, useUIStore } from "../shared/stores"
+import type { Post } from "../shared/types"
 
 interface UsePostsReturn {
   posts: Post[]

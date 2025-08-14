@@ -1,6 +1,6 @@
 import { ThumbsDown, ThumbsUp } from "lucide-react"
 import React from "react"
-import type { PostCardProps } from "../types"
+import type { PostCardProps } from "../shared/types"
 
 export const PostCard: React.FC<PostCardProps> = ({
   post,

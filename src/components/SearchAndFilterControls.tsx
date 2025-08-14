@@ -1,8 +1,9 @@
 import { Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { usePosts } from "../hooks"
-import { usePostStore } from "../stores"
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./index"
+import { fetchTagsAPI } from "../shared/api"
+import { usePostStore } from "../shared/stores"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../shared/ui"
 
 const SearchAndFilterControls = () => {
   // Zustand 스토어 직접 사용
@@ -29,8 +30,7 @@ const SearchAndFilterControls = () => {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const response = await fetch("/api/posts/tags")
-        const data = await response.json()
+        const data = await fetchTagsAPI()
         setTags(data)
       } catch (error) {
         console.error("태그 가져오기 오류:", error)

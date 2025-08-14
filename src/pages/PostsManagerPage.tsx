@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react"
 import { useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Button, Card, CardContent, CardHeader, CardTitle, PostTable } from "../components"
+import { PostTable } from "../components"
 import CommentForm from "../components/CommentForm"
 import Pagination from "../components/Pagination"
 import PostDetailDialog from "../components/PostDetailDialog"
@@ -9,7 +9,9 @@ import PostForm from "../components/PostForm"
 import SearchAndFilterControls from "../components/SearchAndFilterControls"
 import UserModal from "../components/UserModal"
 import { usePagination, usePosts } from "../hooks"
-import { usePostStore, useUIStore } from "../stores"
+import { updateURLParam } from "../shared/lib"
+import { usePostStore, useUIStore } from "../shared/stores"
+import { Button, Card, CardContent, CardHeader, CardTitle } from "../shared/ui"
 
 const PostsManager = () => {
   const location = useLocation()
@@ -28,12 +30,12 @@ const PostsManager = () => {
   // URL 업데이트 함수
   const updateURL = () => {
     const params = new URLSearchParams()
-    if (skip) params.set("skip", skip.toString())
-    if (limit) params.set("limit", limit.toString())
-    if (searchQuery) params.set("search", searchQuery)
-    if (selectedTag) params.set("tag", selectedTag)
-    if (sortBy) params.set("sortBy", sortBy)
-    if (sortOrder) params.set("sortOrder", sortOrder)
+    updateURLParam(params, "skip", skip)
+    updateURLParam(params, "limit", limit)
+    updateURLParam(params, "search", searchQuery)
+    updateURLParam(params, "tag", selectedTag)
+    updateURLParam(params, "sortBy", sortBy)
+    updateURLParam(params, "sortOrder", sortOrder)
     navigate(`?${params.toString()}`)
   }
 

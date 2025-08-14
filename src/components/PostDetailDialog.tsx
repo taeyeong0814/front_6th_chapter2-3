@@ -1,7 +1,7 @@
 import { useSearchAndFilter } from "../hooks"
-import { usePostStore, useUIStore } from "../stores"
+import { usePostStore, useUIStore } from "../shared/stores"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../shared/ui"
 import { CommentList } from "./CommentList"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./index"
 
 const PostDetailDialog = () => {
   // Zustand 스토어 직접 사용

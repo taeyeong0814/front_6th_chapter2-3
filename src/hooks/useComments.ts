@@ -1,47 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCommentStore, useUIStore } from "../stores"
-import type { Comment, CommentFormData, CommentUpdateData } from "../types"
-
-// API 함수들
-const fetchCommentsAPI = async (postId: number) => {
-  const response = await fetch(`/api/comments/post/${postId}`)
-  const data = await response.json()
-  return data.comments
-}
-
-const addCommentAPI = async (comment: CommentFormData) => {
-  const response = await fetch("/api/comments/add", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(comment),
-  })
-  return response.json()
-}
-
-const updateCommentAPI = async (comment: CommentUpdateData) => {
-  const response = await fetch(`/api/comments/${comment.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ body: comment.body }),
-  })
-  return response.json()
-}
-
-const deleteCommentAPI = async (id: number) => {
-  await fetch(`/api/comments/${id}`, {
-    method: "DELETE",
-  })
-  return id
-}
-
-const likeCommentAPI = async (id: number) => {
-  const response = await fetch(`/api/comments/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ likes: 1 }), // 좋아요 증가
-  })
-  return response.json()
-}
+import { addCommentAPI, deleteCommentAPI, fetchCommentsAPI, likeCommentAPI, updateCommentAPI } from "../shared/api"
+import { useCommentStore, useUIStore } from "../shared/stores"
+import type { Comment } from "../shared/types"
 
 interface UseCommentsReturn {
   comments: { [postId: number]: Comment[] }

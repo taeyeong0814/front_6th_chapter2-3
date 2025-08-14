@@ -1,13 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useUIStore, useUserStore } from "../stores"
-import type { User } from "../types"
-
-// API 함수
-const fetchUserAPI = async (userId: number) => {
-  const response = await fetch(`/api/users/${userId}`)
-  const userData = await response.json()
-  return userData
-}
+import { fetchUserAPI } from "../shared/api"
+import { useUIStore, useUserStore } from "../shared/stores"
+import type { User } from "../shared/types"
 
 interface UseUsersReturn {
   selectedUser: User | null

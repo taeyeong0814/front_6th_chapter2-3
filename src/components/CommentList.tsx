@@ -1,8 +1,8 @@
 import { Edit2, Plus, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
 import { useComments, useSearchAndFilter } from "../hooks"
-import { useCommentStore, usePostStore, useUIStore } from "../stores"
-import { Button } from "./index"
+import { useCommentStore, usePostStore, useUIStore } from "../shared/stores"
+import { Button } from "../shared/ui"
 
 export const CommentList: React.FC = () => {
   // Zustand 스토어 직접 사용
