@@ -29,6 +29,13 @@ export const useCommentEntity = () => {
   const addCommentMutation = useMutation({
     mutationFn: addCommentAPI,
     onSuccess: (data) => {
+      // 특정 게시물의 댓글 캐시 업데이트
+      queryClient.setQueryData(["comments", data.postId], (oldData: any) => {
+        if (!oldData) return oldData
+        return [...oldData, data]
+      })
+
+      // 전체 댓글 캐시 업데이트
       queryClient.setQueryData(["comments"], (oldData: any) => {
         if (!oldData) return oldData
         return {
@@ -48,6 +55,13 @@ export const useCommentEntity = () => {
   const updateCommentMutation = useMutation({
     mutationFn: updateCommentAPI,
     onSuccess: (data) => {
+      // 특정 게시물의 댓글 캐시 업데이트
+      queryClient.setQueryData(["comments", data.postId], (oldData: any) => {
+        if (!oldData) return oldData
+        return oldData.map((comment: any) => (comment.id === data.id ? data : comment))
+      })
+
+      // 전체 댓글 캐시 업데이트
       queryClient.setQueryData(["comments"], (oldData: any) => {
         if (!oldData) return oldData
         return {
@@ -66,6 +80,7 @@ export const useCommentEntity = () => {
   const deleteCommentMutation = useMutation({
     mutationFn: deleteCommentAPI,
     onSuccess: (_, deletedId) => {
+      // 전체 댓글 캐시에서 삭제
       queryClient.setQueryData(["comments"], (oldData: any) => {
         if (!oldData) return oldData
         const newData = { ...oldData }
@@ -74,6 +89,9 @@ export const useCommentEntity = () => {
         })
         return newData
       })
+
+      // 모든 특정 게시물 댓글 캐시에서 삭제
+      queryClient.invalidateQueries({ queryKey: ["comments"] })
     },
     onError: (error) => {
       console.error("댓글 삭제 오류:", error)

@@ -11,9 +11,9 @@ interface CommentState {
 interface CommentActions {
   setComments: (postId: number, comments: Comment[]) => void
   addComment: (postId: number, comment: Comment) => void
-  updateComment: (postId: number, commentId: number, updatedComment: Comment) => void
   deleteComment: (postId: number, commentId: number) => void
   setSelectedComment: (comment: Comment | null) => void
+  updateComment: (field: string, value: any) => void
   setNewComment: (comment: any) => void
   updateNewComment: (field: string, value: any) => void
   resetNewComment: () => void
@@ -41,16 +41,6 @@ export const useCommentStore = create<CommentState & CommentActions>((set) => ({
       },
     })),
 
-  updateComment: (postId, commentId, updatedComment) =>
-    set((state) => ({
-      comments: {
-        ...state.comments,
-        [postId]: (state.comments[postId] || []).map((comment) =>
-          comment.id === commentId ? updatedComment : comment,
-        ),
-      },
-    })),
-
   deleteComment: (postId, commentId) =>
     set((state) => ({
       comments: {
@@ -60,6 +50,11 @@ export const useCommentStore = create<CommentState & CommentActions>((set) => ({
     })),
 
   setSelectedComment: (comment) => set({ selectedComment: comment }),
+
+  updateComment: (field, value) =>
+    set((state) => ({
+      selectedComment: state.selectedComment ? { ...state.selectedComment, [field]: value } : null,
+    })),
 
   setNewComment: (comment) => set({ newComment: comment }),
 

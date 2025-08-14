@@ -73,7 +73,7 @@ export const usePostEntity = (
   const addPostMutation = useMutation({
     mutationFn: addPostAPI,
     onSuccess: (data) => {
-      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+      queryClient.setQueryData(["posts", skip, limit, selectedTag, sortOrder], (oldData: any) => {
         if (!oldData) return oldData
         return {
           ...oldData,
@@ -93,7 +93,7 @@ export const usePostEntity = (
   const updatePostMutation = useMutation({
     mutationFn: updatePostAPI,
     onSuccess: (data) => {
-      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+      queryClient.setQueryData(["posts", skip, limit, selectedTag, sortOrder], (oldData: any) => {
         if (!oldData) return oldData
         return {
           ...oldData,
@@ -111,7 +111,7 @@ export const usePostEntity = (
   const deletePostMutation = useMutation({
     mutationFn: deletePostAPI,
     onSuccess: (_, deletedId) => {
-      queryClient.setQueryData(["posts", skip, limit, selectedTag], (oldData: any) => {
+      queryClient.setQueryData(["posts", skip, limit, selectedTag, sortOrder], (oldData: any) => {
         if (!oldData) return oldData
         return {
           ...oldData,

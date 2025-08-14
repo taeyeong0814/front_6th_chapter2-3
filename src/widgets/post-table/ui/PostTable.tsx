@@ -2,18 +2,44 @@ import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react
 import React from "react"
 import { useCommentEntity } from "../../../entities/comment"
 import { usePostEntity } from "../../../entities/post"
-import { fetchUserAPI } from "../../../shared/api"
+import { useUserEntity } from "../../../entities/user"
 import { highlightText } from "../../../shared/lib"
-import { usePostStore, useUIStore, useUserStore } from "../../../shared/stores"
+import { usePostStore, useUIStore } from "../../../shared/stores"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../shared/ui"
 
-export const PostTable: React.FC = () => {
-  // Zustand 스토어 직접 사용
+interface PostTableProps {
+  posts?: any[]
+  onPostSelect?: (post: any) => void
+  onPostEdit?: (post: any) => void
+  onPostDelete?: (postId: number) => void
+  onTagClick?: (tag: string) => void
+  onUserClick?: (user: any) => void
+  searchQuery?: string
+  selectedTag?: string
+  sortBy?: string
+  sortOrder?: string
+}
+
+export const PostTable: React.FC<PostTableProps> = ({
+  posts: externalPosts,
+  onPostSelect,
+  onPostEdit,
+  onPostDelete,
+  onTagClick,
+  onUserClick,
+  searchQuery,
+  selectedTag,
+  sortBy,
+  sortOrder,
+}) => {
+  // Zustand 스토어 직접 사용 (기본값으로 사용)
   const {
-    searchQuery,
-    selectedTag,
-    sortBy,
-    sortOrder,
+    skip,
+    limit,
+    searchQuery: storeSearchQuery,
+    selectedTag: storeSelectedTag,
+    sortBy: storeSortBy,
+    sortOrder: storeSortOrder,
     setSelectedPost,
     setSelectedTag,
     searchResults,
@@ -22,25 +48,35 @@ export const PostTable: React.FC = () => {
   } = usePostStore()
 
   const { setShowPostDetailDialog, setShowEditPostDialog } = useUIStore()
+  const { openUserModal } = useUserEntity()
 
-  const { setSelectedUser } = useUserStore()
-  const { setShowUserModal } = useUIStore()
+  // Props가 있으면 Props 사용, 없으면 스토어 사용
+  const finalSearchQuery = searchQuery ?? storeSearchQuery
+  const finalSelectedTag = selectedTag ?? storeSelectedTag
+  const finalSortBy = sortBy ?? storeSortBy
+  const finalSortOrder = sortOrder ?? storeSortOrder
 
-  // 커스텀 훅에서 데이터 가져오기
-  const { posts: originalPosts, deletePost } = usePostEntity(0, 10, searchQuery, selectedTag, sortOrder)
+  // usePostEntity 훅 사용 (올바른 파라미터 전달)
+  const { posts: originalPosts, deletePost } = usePostEntity(
+    skip,
+    limit,
+    finalSearchQuery,
+    finalSelectedTag,
+    finalSortOrder,
+  )
 
-  // 실제로 검색을 실행했을 때만 검색 결과를 사용
-  const posts = hasSearched && isSearchActive && searchResults ? searchResults : originalPosts
+  // Props로 받은 posts가 있으면 사용, 없으면 훅에서 가져온 데이터 사용
+  const posts = externalPosts ?? (hasSearched && isSearchActive && searchResults ? searchResults : originalPosts)
 
   // 클라이언트 사이드 정렬
   const sortedPosts = React.useMemo(() => {
-    if (!sortBy || sortBy === "none") return posts
+    if (!finalSortBy || finalSortBy === "none") return posts
 
     return [...posts].sort((a: any, b: any) => {
       let aValue: any
       let bValue: any
 
-      switch (sortBy) {
+      switch (finalSortBy) {
         case "id":
           aValue = a.id
           bValue = b.id
@@ -57,47 +93,60 @@ export const PostTable: React.FC = () => {
           return 0
       }
 
-      if (sortOrder === "asc") {
+      if (finalSortOrder === "asc") {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
       } else {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
       }
     })
-  }, [posts, sortBy, sortOrder])
+  }, [posts, finalSortBy, finalSortOrder])
 
   const { fetchComments } = useCommentEntity()
 
-  // 이벤트 핸들러들
+  // 이벤트 핸들러들 (Props가 있으면 Props 사용, 없으면 기본 동작)
   const handleTagClick = (tag: string) => {
-    setSelectedTag(tag)
+    if (onTagClick) {
+      onTagClick(tag)
+    } else {
+      setSelectedTag(tag)
+    }
   }
 
   const handleUserClick = async (user: any) => {
-    try {
-      const userData = await fetchUserAPI(user.id)
-      setSelectedUser(userData)
-      setShowUserModal(true)
-    } catch (error) {
-      console.error("사용자 정보 가져오기 오류:", error)
+    if (onUserClick) {
+      onUserClick(user)
+    } else {
+      openUserModal(user)
     }
   }
 
   const handlePostDetailClick = async (post: any) => {
-    setSelectedPost(post)
-    setShowPostDetailDialog(true)
-
-    // 댓글 가져오기
-    await fetchComments(post.id)
+    if (onPostSelect) {
+      onPostSelect(post)
+    } else {
+      setSelectedPost(post)
+      setShowPostDetailDialog(true)
+      await fetchComments(post.id)
+    }
   }
 
   const handlePostEditClick = (post: any) => {
-    setSelectedPost(post)
-    setShowEditPostDialog(true)
+    if (onPostEdit) {
+      onPostEdit(post)
+    } else {
+      setSelectedPost(post)
+      setShowEditPostDialog(true)
+    }
   }
 
   const handlePostDeleteClick = (postId: number) => {
-    deletePost(postId)
+    if (onPostDelete) {
+      onPostDelete(postId)
+    } else {
+      deletePost(postId)
+    }
   }
+
   return (
     <Table>
       <TableHeader>
@@ -115,14 +164,14 @@ export const PostTable: React.FC = () => {
             <TableCell>{post.id}</TableCell>
             <TableCell>
               <div className="space-y-1">
-                <div>{highlightText(post.title, searchQuery)}</div>
+                <div>{highlightText(post.title, finalSearchQuery)}</div>
 
                 <div className="flex flex-wrap gap-1">
                   {post.tags?.map((tag: string) => (
                     <span
                       key={tag}
                       className={`px-1 text-[9px] font-semibold rounded-[4px] cursor-pointer ${
-                        selectedTag === tag
+                        finalSelectedTag === tag
                           ? "text-white bg-blue-500 hover:bg-blue-600"
                           : "text-blue-800 bg-blue-100 hover:bg-blue-200"
                       }`}

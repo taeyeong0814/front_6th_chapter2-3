@@ -1,8 +1,15 @@
 import { create } from "zustand"
+import { searchPostsAPI } from "../api"
 import type { Post, PostFormData } from "../types"
 
 // 게시물 상태 인터페이스
 interface PostState {
+  // 게시물 데이터
+  posts: Post[]
+  total: number
+  skip: number
+  limit: number
+
   // 선택된 게시물
   selectedPost: Post | null
 
@@ -18,10 +25,15 @@ interface PostState {
   // 검색 결과 상태
   searchResults: Post[] | null
   isSearchActive: boolean
-  hasSearched: boolean // 실제로 검색을 실행했는지 여부
+  hasSearched: boolean
 
   // 액션들
+  setPosts: (posts: Post[]) => void
+  setTotal: (total: number) => void
+  setSkip: (skip: number) => void
+  setLimit: (limit: number) => void
   setSelectedPost: (post: Post | null) => void
+  updateSelectedPost: (updates: Partial<Post>) => void
   setNewPost: (post: PostFormData) => void
   updateNewPost: (updates: Partial<PostFormData>) => void
   resetNewPost: () => void
@@ -48,6 +60,10 @@ const initialNewPost: PostFormData = {
 // 게시물 스토어 생성
 export const usePostStore = create<PostState>((set) => ({
   // 초기 상태
+  posts: [],
+  total: 0,
+  skip: 0,
+  limit: 10,
   selectedPost: null,
   newPost: initialNewPost,
   searchQuery: "",
@@ -59,7 +75,16 @@ export const usePostStore = create<PostState>((set) => ({
   hasSearched: false,
 
   // 액션들
+  setPosts: (posts) => set({ posts }),
+  setTotal: (total) => set({ total }),
+  setSkip: (skip) => set({ skip }),
+  setLimit: (limit) => set({ limit }),
   setSelectedPost: (post) => set({ selectedPost: post }),
+
+  updateSelectedPost: (updates) =>
+    set((state) => ({
+      selectedPost: state.selectedPost ? { ...state.selectedPost, ...updates } : null,
+    })),
 
   setNewPost: (post) => set({ newPost: post }),
 
@@ -87,16 +112,13 @@ export const usePostStore = create<PostState>((set) => ({
   // 검색 액션
   searchPosts: async (query: string) => {
     if (!query.trim()) {
-      // 빈 값일 때는 검색 결과를 초기화하고 전체 데이터를 보여주도록 함
       set({ searchResults: null, isSearchActive: false, hasSearched: false })
       return
     }
 
     try {
-      const response = await fetch(`/api/posts/search?q=${encodeURIComponent(query)}`)
-      const data = await response.json()
+      const data = await searchPostsAPI(query)
 
-      // 검색 결과를 상태에 저장
       set({
         searchResults: data.posts || [],
         isSearchActive: true,
@@ -108,7 +130,6 @@ export const usePostStore = create<PostState>((set) => ({
     }
   },
 
-  // 검색 초기화
   clearSearch: () => {
     set({ searchResults: null, isSearchActive: false, hasSearched: false })
   },
