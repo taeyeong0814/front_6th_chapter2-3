@@ -149,16 +149,6 @@ export const usePosts = (
   const total = currentData?.total || 0
   const isLoading = searchLoading || loading
 
-  // 디버깅 로그
-  console.log("📊 데이터 상태:", {
-    isSearchActive,
-    searchData: searchData?.posts?.length || 0,
-    postsData: postsData?.posts?.length || 0,
-    currentPosts: posts.length,
-    searchQuery,
-    selectedTag,
-  })
-
   // 게시물 추가 (useMutation)
   const addPostMutation = useMutation({
     mutationFn: addPostAPI,
