@@ -18,6 +18,7 @@ interface PostState {
   // 검색 결과 상태
   searchResults: Post[] | null
   isSearchActive: boolean
+  hasSearched: boolean // 실제로 검색을 실행했는지 여부
 
   // 액션들
   setSelectedPost: (post: Post | null) => void
@@ -55,6 +56,7 @@ export const usePostStore = create<PostState>((set) => ({
   sortOrder: "asc",
   searchResults: null,
   isSearchActive: false,
+  hasSearched: false,
 
   // 액션들
   setSelectedPost: (post) => set({ selectedPost: post }),
@@ -85,7 +87,7 @@ export const usePostStore = create<PostState>((set) => ({
   // 검색 액션
   searchPosts: async (query: string) => {
     if (!query.trim()) {
-      set({ searchResults: null, isSearchActive: false })
+      set({ searchResults: null, isSearchActive: false, hasSearched: false })
       return
     }
 
@@ -97,15 +99,16 @@ export const usePostStore = create<PostState>((set) => ({
       set({
         searchResults: data.posts || [],
         isSearchActive: true,
+        hasSearched: true,
       })
     } catch (error) {
       console.error("검색 오류:", error)
-      set({ searchResults: [], isSearchActive: true })
+      set({ searchResults: [], isSearchActive: true, hasSearched: true })
     }
   },
 
   // 검색 초기화
   clearSearch: () => {
-    set({ searchResults: null, isSearchActive: false })
+    set({ searchResults: null, isSearchActive: false, hasSearched: false })
   },
 }))

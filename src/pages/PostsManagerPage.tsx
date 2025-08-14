@@ -16,7 +16,8 @@ const PostsManager = () => {
   const navigate = useNavigate()
 
   // Zustand 스토어 직접 사용
-  const { searchQuery, selectedTag, sortBy, sortOrder, setSelectedTag, setSortBy, setSortOrder } = usePostStore()
+  const { searchQuery, selectedTag, sortBy, sortOrder, setSearchQuery, setSelectedTag, setSortBy, setSortOrder } =
+    usePostStore()
 
   const { setShowAddPostDialog: setShowAddDialog } = useUIStore()
 
@@ -29,6 +30,7 @@ const PostsManager = () => {
     const params = new URLSearchParams()
     if (skip) params.set("skip", skip.toString())
     if (limit) params.set("limit", limit.toString())
+    if (searchQuery) params.set("search", searchQuery)
     if (selectedTag) params.set("tag", selectedTag)
     if (sortBy) params.set("sortBy", sortBy)
     if (sortOrder) params.set("sortOrder", sortOrder)
@@ -38,15 +40,16 @@ const PostsManager = () => {
   // URL 파라미터 동기화 (URL → 상태)
   useEffect(() => {
     const params = new URLSearchParams(location.search)
+    setSearchQuery(params.get("search") || "")
     setSortBy(params.get("sortBy") || "")
     setSortOrder(params.get("sortOrder") || "asc")
     setSelectedTag(params.get("tag") || "")
-  }, [location.search, setSortBy, setSortOrder, setSelectedTag])
+  }, [location.search, setSearchQuery, setSortBy, setSortOrder, setSelectedTag])
 
   // 상태 변경 시 URL 업데이트 (상태 → URL)
   useEffect(() => {
     updateURL()
-  }, [skip, limit, selectedTag, sortBy, sortOrder])
+  }, [skip, limit, searchQuery, selectedTag, sortBy, sortOrder])
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
