@@ -1,9 +1,9 @@
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { cva, VariantProps } from "class-variance-authority"
+import { Check, ChevronDown, X } from "lucide-react"
 import * as React from "react"
 import { forwardRef } from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { Check, ChevronDown, X } from "lucide-react"
-import { cva, VariantProps } from "class-variance-authority"
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background",
@@ -212,3 +212,9 @@ export const TableCell = forwardRef(({ className, ...props }, ref) => (
   <td ref={ref} className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 ${className}`} {...props} />
 ))
 TableCell.displayName = "TableCell"
+
+// 새로 분리된 컴포넌트들
+export { CommentList } from "./CommentList"
+export { PostActions } from "./PostActions"
+export { PostCard } from "./PostCard"
+export { PostTable } from "./PostTable"
