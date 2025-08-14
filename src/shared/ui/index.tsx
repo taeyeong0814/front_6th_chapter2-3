@@ -243,7 +243,7 @@ export const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes
 TableCell.displayName = "TableCell"
 
 // 새로 분리된 컴포넌트들
-export { CommentList } from "./CommentList"
-export { PostActions } from "./PostActions"
-export { PostCard } from "./PostCard"
-export { PostTable } from "./PostTable"
+// export { CommentList } from "./CommentList"
+// export { PostActions } from "./PostActions"
+// export { PostCard } from "./PostCard"
+// export { PostTable } from "./PostTable"

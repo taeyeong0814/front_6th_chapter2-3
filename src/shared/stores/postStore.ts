@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { Post, PostFormData } from "../shared/types"
+import type { Post, PostFormData } from "../types"
 
 // 게시물 상태 인터페이스
 interface PostState {

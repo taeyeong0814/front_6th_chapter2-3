@@ -1,9 +1,9 @@
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import { useComments, usePosts, useSearchAndFilter } from "../hooks"
-import { fetchUserAPI } from "../shared/api"
-import { usePostStore, useUIStore, useUserStore } from "../shared/stores"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../shared/ui"
+import { useComments, usePosts, useSearchAndFilter } from "../../../hooks"
+import { fetchUserAPI } from "../../../shared/api"
+import { usePostStore, useUIStore, useUserStore } from "../../../shared/stores"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../shared/ui"
 
 export const PostTable: React.FC = () => {
   // Zustand 스토어 직접 사용

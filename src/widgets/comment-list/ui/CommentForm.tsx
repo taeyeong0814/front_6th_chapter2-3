@@ -1,7 +1,7 @@
 import React from "react"
-import { useComments } from "../hooks"
-import { useCommentStore, useUIStore } from "../shared/stores"
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "../shared/ui"
+import { useComments } from "../../../hooks"
+import { useCommentStore, useUIStore } from "../../../shared/stores"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "../../../shared/ui"
 
 const CommentForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   // Zustand 스토어 직접 사용

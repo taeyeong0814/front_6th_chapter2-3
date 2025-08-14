@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { User } from "../shared/types"
+import type { User } from "../types"
 
 // 사용자 상태 인터페이스
 interface UserState {
