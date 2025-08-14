@@ -12,7 +12,6 @@ interface UseSearchAndFilterReturn {
   setSelectedTag: (tag: string) => void
   setSortBy: (sortBy: string) => void
   setSortOrder: (sortOrder: string) => void
-  setTags: (tags: string[]) => void
   fetchTags: () => void
   highlightText: (text: string, highlight: string) => JSX.Element | null
 }
@@ -62,12 +61,6 @@ export const useSearchAndFilter = (
     refetchTags()
   }
 
-  // setTags 함수 (기존 인터페이스 유지)
-  const setTags = (_newTags: string[]) => {
-    // React Query로 관리되므로 실제로는 사용되지 않음
-    // 하지만 기존 인터페이스를 유지하기 위해 빈 함수로 유지
-  }
-
   return {
     searchQuery,
     selectedTag,
@@ -78,7 +71,6 @@ export const useSearchAndFilter = (
     setSelectedTag,
     setSortBy,
     setSortOrder,
-    setTags,
     fetchTags,
     highlightText,
   }
