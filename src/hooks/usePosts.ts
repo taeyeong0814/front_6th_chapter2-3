@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 
 interface Post {
   id: number
@@ -17,6 +18,72 @@ interface Post {
   }
 }
 
+// API 함수들
+const fetchPostsAPI = async (skip: number, limit: number) => {
+  const [postsResponse, usersResponse] = await Promise.all([
+    fetch(`/api/posts?limit=${limit}&skip=${skip}`),
+    fetch("/api/users?limit=0&select=username,image"),
+  ])
+
+  const postsData = await postsResponse.json()
+  const usersData = await usersResponse.json()
+
+  const postsWithUsers = postsData.posts.map((post: Post) => ({
+    ...post,
+    author: usersData.users.find((user: any) => user.id === post.userId),
+  }))
+
+  return { posts: postsWithUsers, total: postsData.total }
+}
+
+const searchPostsAPI = async (query: string) => {
+  const response = await fetch(`/api/posts/search?q=${query}`)
+  const data = await response.json()
+  return data
+}
+
+const fetchPostsByTagAPI = async (tag: string) => {
+  const [postsResponse, usersResponse] = await Promise.all([
+    fetch(`/api/posts/tag/${tag}`),
+    fetch("/api/users?limit=0&select=username,image"),
+  ])
+
+  const postsData = await postsResponse.json()
+  const usersData = await usersResponse.json()
+
+  const postsWithUsers = postsData.posts.map((post: Post) => ({
+    ...post,
+    author: usersData.users.find((user: any) => user.id === post.userId),
+  }))
+
+  return { posts: postsWithUsers, total: postsData.total }
+}
+
+const addPostAPI = async (post: { title: string; body: string; userId: number }) => {
+  const response = await fetch("/api/posts/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(post),
+  })
+  return response.json()
+}
+
+const updatePostAPI = async (post: Post) => {
+  const response = await fetch(`/api/posts/${post.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(post),
+  })
+  return response.json()
+}
+
+const deletePostAPI = async (id: number) => {
+  await fetch(`/api/posts/${id}`, {
+    method: "DELETE",
+  })
+  return id
+}
+
 interface UsePostsReturn {
   posts: Post[]
   total: number
@@ -26,7 +93,6 @@ interface UsePostsReturn {
   showAddDialog: boolean
   showEditDialog: boolean
   showPostDetailDialog: boolean
-  fetchPosts: () => void
   searchPosts: (query: string) => void
   fetchPostsByTag: (tag: string) => void
   addPost: () => void
@@ -41,135 +107,115 @@ interface UsePostsReturn {
 }
 
 export const usePosts = (skip: number, limit: number, searchQuery: string, selectedTag: string): UsePostsReturn => {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
 
-  // 게시물 가져오기
-  const fetchPosts = () => {
-    setLoading(true)
-    let postsData: any
-    let usersData: any
+  // 게시물 목록 조회 (useQuery)
+  const {
+    data: postsData = { posts: [], total: 0 },
+    isLoading: loading,
+    refetch: refetchPosts,
+  } = useQuery({
+    queryKey: ["posts", skip, limit, selectedTag],
+    queryFn: () => {
+      if (selectedTag && selectedTag !== "all") {
+        return fetchPostsByTagAPI(selectedTag)
+      }
+      return fetchPostsAPI(skip, limit)
+    },
+    enabled: !searchQuery, // 검색 중일 때는 비활성화
+  })
 
-    fetch(`/api/posts?limit=${limit}&skip=${skip}`)
-      .then((response) => response.json())
-      .then((data) => {
-        postsData = data
-        return fetch("/api/users?limit=0&select=username,image")
-      })
-      .then((response) => response.json())
-      .then((users) => {
-        usersData = users.users
-        const postsWithUsers = postsData.posts.map((post: Post) => ({
-          ...post,
-          author: usersData.find((user: any) => user.id === post.userId),
-        }))
-        setPosts(postsWithUsers)
-        setTotal(postsData.total)
-      })
-      .catch((error) => {
-        console.error("게시물 가져오기 오류:", error)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }
+  // 게시물 검색 (useQuery)
+  const {
+    data: searchData,
+    isLoading: searchLoading,
+    refetch: refetchSearch,
+  } = useQuery({
+    queryKey: ["posts", "search", searchQuery],
+    queryFn: () => searchPostsAPI(searchQuery),
+    enabled: !!searchQuery, // 검색어가 있을 때만 활성화
+  })
+
+  // 현재 표시할 데이터 결정
+  const currentData = searchQuery ? searchData : postsData
+  const posts = currentData?.posts || []
+  const total = currentData?.total || 0
+  const isLoading = searchQuery ? searchLoading : loading
+
+  // 게시물 추가 (useMutation)
+  const addPostMutation = useMutation({
+    mutationFn: addPostAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] })
+      setShowAddDialog(false)
+      setNewPost({ title: "", body: "", userId: 1 })
+    },
+    onError: (error) => {
+      console.error("게시물 추가 오류:", error)
+    },
+  })
+
+  // 게시물 수정 (useMutation)
+  const updatePostMutation = useMutation({
+    mutationFn: updatePostAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] })
+      setShowEditDialog(false)
+    },
+    onError: (error) => {
+      console.error("게시물 수정 오류:", error)
+    },
+  })
+
+  // 게시물 삭제 (useMutation)
+  const deletePostMutation = useMutation({
+    mutationFn: deletePostAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] })
+    },
+    onError: (error) => {
+      console.error("게시물 삭제 오류:", error)
+    },
+  })
 
   // 게시물 검색
-  const searchPosts = async (query: string) => {
-    if (!query) {
-      fetchPosts()
-      return
+  const searchPosts = (query: string) => {
+    if (query) {
+      refetchSearch()
+    } else {
+      refetchPosts()
     }
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/posts/search?q=${query}`)
-      const data = await response.json()
-      setPosts(data.posts)
-      setTotal(data.total)
-    } catch (error) {
-      console.error("게시물 검색 오류:", error)
-    }
-    setLoading(false)
   }
 
   // 태그별 게시물 가져오기
-  const fetchPostsByTag = async (tag: string) => {
-    if (!tag || tag === "all") {
-      fetchPosts()
-      return
+  const fetchPostsByTag = (tag: string) => {
+    if (tag && tag !== "all") {
+      queryClient.invalidateQueries({ queryKey: ["posts", skip, limit, tag] })
+    } else {
+      refetchPosts()
     }
-    setLoading(true)
-    try {
-      const [postsResponse, usersResponse] = await Promise.all([
-        fetch(`/api/posts/tag/${tag}`),
-        fetch("/api/users?limit=0&select=username,image"),
-      ])
-      const postsData = await postsResponse.json()
-      const usersData = await usersResponse.json()
-
-      const postsWithUsers = postsData.posts.map((post: Post) => ({
-        ...post,
-        author: usersData.users.find((user: any) => user.id === post.userId),
-      }))
-
-      setPosts(postsWithUsers)
-      setTotal(postsData.total)
-    } catch (error) {
-      console.error("태그별 게시물 가져오기 오류:", error)
-    }
-    setLoading(false)
   }
 
   // 게시물 추가
-  const addPost = async () => {
-    try {
-      const response = await fetch("/api/posts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPost),
-      })
-      const data = await response.json()
-      setPosts([data, ...posts])
-      setShowAddDialog(false)
-      setNewPost({ title: "", body: "", userId: 1 })
-    } catch (error) {
-      console.error("게시물 추가 오류:", error)
-    }
+  const addPost = () => {
+    addPostMutation.mutate(newPost)
   }
 
   // 게시물 업데이트
-  const updatePost = async () => {
-    if (!selectedPost) return
-    try {
-      const response = await fetch(`/api/posts/${selectedPost.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selectedPost),
-      })
-      const data = await response.json()
-      setPosts(posts.map((post) => (post.id === data.id ? data : post)))
-      setShowEditDialog(false)
-    } catch (error) {
-      console.error("게시물 업데이트 오류:", error)
+  const updatePost = () => {
+    if (selectedPost) {
+      updatePostMutation.mutate(selectedPost)
     }
   }
 
   // 게시물 삭제
-  const deletePost = async (id: number) => {
-    try {
-      await fetch(`/api/posts/${id}`, {
-        method: "DELETE",
-      })
-      setPosts(posts.filter((post) => post.id !== id))
-    } catch (error) {
-      console.error("게시물 삭제 오류:", error)
-    }
+  const deletePost = (id: number) => {
+    deletePostMutation.mutate(id)
   }
 
   // 게시물 상세 보기
@@ -178,25 +224,15 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
     setShowPostDetailDialog(true)
   }
 
-  // 의존성 변경 시 게시물 다시 가져오기
-  useEffect(() => {
-    if (selectedTag) {
-      fetchPostsByTag(selectedTag)
-    } else {
-      fetchPosts()
-    }
-  }, [skip, limit, selectedTag])
-
   return {
     posts,
     total,
-    loading,
+    loading: isLoading,
     selectedPost,
     newPost,
     showAddDialog,
     showEditDialog,
     showPostDetailDialog,
-    fetchPosts,
     searchPosts,
     fetchPostsByTag,
     addPost,
