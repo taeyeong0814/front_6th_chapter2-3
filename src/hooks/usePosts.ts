@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { usePostStore, useUIStore } from "../stores"
 import type { Post, PostFormData } from "../types"
 
 // API 함수들
@@ -92,11 +92,18 @@ interface UsePostsReturn {
 
 export const usePosts = (skip: number, limit: number, searchQuery: string, selectedTag: string): UsePostsReturn => {
   const queryClient = useQueryClient()
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
-  const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
+
+  // Zustand 스토어 사용
+  const { selectedPost, newPost, setSelectedPost, setNewPost, resetNewPost } = usePostStore()
+
+  const {
+    showAddPostDialog: showAddDialog,
+    showEditPostDialog: showEditDialog,
+    showPostDetailDialog,
+    setShowAddPostDialog: setShowAddDialog,
+    setShowEditPostDialog: setShowEditDialog,
+    setShowPostDetailDialog,
+  } = useUIStore()
 
   // 게시물 목록 조회 (useQuery)
   const {
@@ -137,7 +144,7 @@ export const usePosts = (skip: number, limit: number, searchQuery: string, selec
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] })
       setShowAddDialog(false)
-      setNewPost({ title: "", body: "", userId: 1 })
+      resetNewPost()
     },
     onError: (error) => {
       console.error("게시물 추가 오류:", error)

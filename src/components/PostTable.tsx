@@ -1,19 +1,55 @@
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import type { PostTableProps } from "../types"
+import { useComments, usePosts, useSearchAndFilter } from "../hooks"
+import { usePostStore, useUIStore, useUserStore } from "../stores"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./index"
 
-export const PostTable: React.FC<PostTableProps> = ({
-  posts,
-  searchQuery,
-  selectedTag,
-  highlightText,
-  onTagClick,
-  onUserClick,
-  onPostDetailClick,
-  onPostEditClick,
-  onPostDeleteClick,
-}) => {
+export const PostTable: React.FC = () => {
+  // Zustand 스토어 직접 사용
+  const { searchQuery, selectedTag, setSelectedPost, setSelectedTag } = usePostStore()
+
+  const { setShowPostDetailDialog, setShowEditPostDialog } = useUIStore()
+
+  const { setSelectedUser } = useUserStore()
+  const { setShowUserModal } = useUIStore()
+
+  // 커스텀 훅에서 데이터 가져오기
+  const { posts, deletePost } = usePosts(0, 10, searchQuery, selectedTag)
+  const { highlightText } = useSearchAndFilter()
+  const { fetchComments } = useComments()
+
+  // 이벤트 핸들러들
+  const handleTagClick = (tag: string) => {
+    setSelectedTag(tag)
+  }
+
+  const handleUserClick = async (user: any) => {
+    try {
+      const response = await fetch(`/api/users/${user.id}`)
+      const userData = await response.json()
+      setSelectedUser(userData)
+      setShowUserModal(true)
+    } catch (error) {
+      console.error("사용자 정보 가져오기 오류:", error)
+    }
+  }
+
+  const handlePostDetailClick = async (post: any) => {
+    setSelectedPost(post)
+    setShowPostDetailDialog(true)
+
+    // 댓글 가져오기
+    await fetchComments(post.id)
+  }
+
+  const handlePostEditClick = (post: any) => {
+    setSelectedPost(post)
+    setShowEditPostDialog(true)
+  }
+
+  const handlePostDeleteClick = (postId: number) => {
+    deletePost(postId)
+  }
   return (
     <Table>
       <TableHeader>
@@ -42,7 +78,7 @@ export const PostTable: React.FC<PostTableProps> = ({
                           ? "text-white bg-blue-500 hover:bg-blue-600"
                           : "text-blue-800 bg-blue-100 hover:bg-blue-200"
                       }`}
-                      onClick={() => onTagClick(tag)}
+                      onClick={() => handleTagClick(tag)}
                     >
                       {tag}
                     </span>
@@ -53,7 +89,7 @@ export const PostTable: React.FC<PostTableProps> = ({
             <TableCell>
               <div
                 className="flex items-center space-x-2 cursor-pointer"
-                onClick={() => post.author && onUserClick(post.author)}
+                onClick={() => post.author && handleUserClick(post.author)}
               >
                 <img src={post.author?.image} alt={post.author?.username} className="w-8 h-8 rounded-full" />
                 <span>{post.author?.username}</span>
@@ -69,13 +105,13 @@ export const PostTable: React.FC<PostTableProps> = ({
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => onPostDetailClick(post)}>
+                <Button variant="ghost" size="sm" onClick={() => handlePostDetailClick(post)}>
                   <MessageSquare className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => onPostEditClick(post)}>
+                <Button variant="ghost" size="sm" onClick={() => handlePostEditClick(post)}>
                   <Edit2 className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => onPostDeleteClick(post.id)}>
+                <Button variant="ghost" size="sm" onClick={() => handlePostDeleteClick(post.id)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>

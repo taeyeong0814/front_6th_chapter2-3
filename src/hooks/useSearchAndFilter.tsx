@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import type { JSX } from "react"
-import { useState } from "react"
+import { usePostStore } from "../stores"
 
 interface UseSearchAndFilterReturn {
   searchQuery: string
@@ -23,16 +23,10 @@ const fetchTagsAPI = async () => {
   return data
 }
 
-export const useSearchAndFilter = (
-  initialSearchQuery: string = "",
-  initialSelectedTag: string = "",
-  initialSortBy: string = "",
-  initialSortOrder: string = "asc",
-): UseSearchAndFilterReturn => {
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
-  const [selectedTag, setSelectedTag] = useState(initialSelectedTag)
-  const [sortBy, setSortBy] = useState(initialSortBy)
-  const [sortOrder, setSortOrder] = useState(initialSortOrder)
+export const useSearchAndFilter = (): UseSearchAndFilterReturn => {
+  // Zustand 스토어 사용
+  const { searchQuery, selectedTag, sortBy, sortOrder, setSearchQuery, setSelectedTag, setSortBy, setSortOrder } =
+    usePostStore()
 
   // 태그 목록 조회 (useQuery)
   const { data: tags = [], refetch: refetchTags } = useQuery({

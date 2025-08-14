@@ -34,7 +34,7 @@ export interface PostTableProps {
   posts: Post[]
   searchQuery: string
   selectedTag: string
-  highlightText: (text: string, highlight: string) => JSX.Element | null
+  highlightText: (text: string, highlight: string) => React.ReactElement | null
   onTagClick: (tag: string) => void
   onUserClick: (user: any) => void
   onPostDetailClick: (post: Post) => void
@@ -46,7 +46,7 @@ export interface PostCardProps {
   post: Post
   searchQuery: string
   selectedTag: string
-  highlightText: (text: string, highlight: string) => JSX.Element | null
+  highlightText: (text: string, highlight: string) => React.ReactElement | null
   onTagClick: (tag: string) => void
   onUserClick: (user: any) => void
   onPostDetailClick: (post: Post) => void
@@ -77,6 +77,6 @@ export interface PostDetailDialogProps {
   isOpen: boolean
   onClose: () => void
   searchQuery: string
-  highlightText: (text: string, highlight: string) => JSX.Element | null
-  renderComments: (postId: number) => JSX.Element
+  highlightText: (text: string, highlight: string) => React.ReactElement | null
+  renderComments: (postId: number) => React.ReactElement
 }

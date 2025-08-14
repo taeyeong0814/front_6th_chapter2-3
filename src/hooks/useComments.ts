@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useCommentStore, useUIStore } from "../stores"
 import type { Comment, CommentFormData, CommentUpdateData } from "../types"
 
 // API 함수들
@@ -60,10 +60,12 @@ interface UseCommentsReturn {
 
 export const useComments = (): UseCommentsReturn => {
   const queryClient = useQueryClient()
-  const [selectedComment, setSelectedComment] = useState<Comment | null>(null)
-  const [newComment, setNewComment] = useState({ body: "", postId: null as number | null, userId: 1 })
-  const [showAddCommentDialog, setShowAddCommentDialog] = useState(false)
-  const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
+
+  // Zustand 스토어 사용
+  const { selectedComment, newComment, setSelectedComment, setNewComment, resetNewComment } = useCommentStore()
+
+  const { showAddCommentDialog, showEditCommentDialog, setShowAddCommentDialog, setShowEditCommentDialog } =
+    useUIStore()
 
   // 댓글 목록 조회 (useQuery)
   const { data: commentsData = {} } = useQuery({
@@ -79,7 +81,7 @@ export const useComments = (): UseCommentsReturn => {
       // 특정 게시물의 댓글 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ["comments", data.postId] })
       setShowAddCommentDialog(false)
-      setNewComment({ body: "", postId: null, userId: 1 })
+      resetNewComment()
     },
     onError: (error) => {
       console.error("댓글 추가 오류:", error)
@@ -132,6 +134,13 @@ export const useComments = (): UseCommentsReturn => {
     // 캐시에 없으면 새로 요청
     const comments = await fetchCommentsAPI(postId)
     queryClient.setQueryData(["comments", postId], comments)
+
+    // 전체 댓글 데이터 업데이트
+    const currentData = queryClient.getQueryData(["comments"]) || {}
+    queryClient.setQueryData(["comments"], {
+      ...currentData,
+      [postId]: comments,
+    })
   }
 
   // 댓글 추가

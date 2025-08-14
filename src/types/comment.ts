@@ -27,7 +27,7 @@ export interface CommentListProps {
   comments: Comment[]
   postId: number
   searchQuery: string
-  highlightText: (text: string, highlight: string) => JSX.Element | null
+  highlightText: (text: string, highlight: string) => React.ReactElement | null
   onAddComment: () => void
   onLikeComment: (id: number, postId: number) => void
   onEditComment: (comment: Comment) => void

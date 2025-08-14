@@ -1,8 +1,21 @@
 import React from "react"
-import type { CommentFormProps } from "../types"
+import { useComments } from "../hooks"
+import { useCommentStore, useUIStore } from "../stores"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "./index"
 
-const CommentForm = ({ comment, isOpen, onClose, onSubmit, onBodyChange, isEdit = false }: CommentFormProps) => {
+const CommentForm = ({ isEdit = false }: { isEdit?: boolean }) => {
+  // Zustand 스토어 직접 사용
+  const { newComment, selectedComment, updateNewComment } = useCommentStore()
+  const { showAddCommentDialog, showEditCommentDialog, setShowAddCommentDialog, setShowEditCommentDialog } =
+    useUIStore()
+
+  // 커스텀 훅에서 API 로직 가져오기
+  const { addComment, updateComment } = useComments()
+
+  const comment = isEdit ? selectedComment : newComment
+  const isOpen = isEdit ? showEditCommentDialog : showAddCommentDialog
+  const onClose = isEdit ? () => setShowEditCommentDialog(false) : () => setShowAddCommentDialog(false)
+
   if (!comment) return null
 
   return (
@@ -15,9 +28,19 @@ const CommentForm = ({ comment, isOpen, onClose, onSubmit, onBodyChange, isEdit 
           <Textarea
             placeholder="댓글 내용"
             value={comment.body || ""} // ← null 체크 추가
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onBodyChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateNewComment({ body: e.target.value })}
           />
-          <Button onClick={onSubmit}>{isEdit ? "댓글 업데이트" : "댓글 추가"}</Button>
+          <Button
+            onClick={() => {
+              if (isEdit) {
+                updateComment()
+              } else {
+                addComment()
+              }
+            }}
+          >
+            {isEdit ? "댓글 업데이트" : "댓글 추가"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

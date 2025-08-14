@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useUIStore, useUserStore } from "../stores"
 import type { User } from "../types"
 
 // API 함수
@@ -18,14 +18,10 @@ interface UseUsersReturn {
 
 export const useUsers = (): UseUsersReturn => {
   const queryClient = useQueryClient()
-  const [showUserModal, setShowUserModal] = useState(false)
 
-  // 사용자 정보 조회 (useQuery)
-  const { data: selectedUser, refetch: fetchUser } = useQuery({
-    queryKey: ["user"],
-    queryFn: () => Promise.resolve(null), // 초기에는 null
-    enabled: false, // 수동으로만 호출
-  })
+  // Zustand 스토어 사용
+  const { selectedUser, setSelectedUser } = useUserStore()
+  const { showUserModal, setShowUserModal } = useUIStore()
 
   // 사용자 모달 열기
   const openUserModal = async (user: { id: number; username: string; image: string }) => {
@@ -33,6 +29,7 @@ export const useUsers = (): UseUsersReturn => {
     const cachedUser = queryClient.getQueryData(["user", user.id])
     if (cachedUser) {
       queryClient.setQueryData(["user"], cachedUser)
+      setSelectedUser(cachedUser as User)
       setShowUserModal(true)
       return
     }
@@ -42,6 +39,7 @@ export const useUsers = (): UseUsersReturn => {
       const userData = await fetchUserAPI(user.id)
       queryClient.setQueryData(["user", user.id], userData) // 캐시에 저장
       queryClient.setQueryData(["user"], userData) // 현재 선택된 사용자로 설정
+      setSelectedUser(userData)
       setShowUserModal(true)
     } catch (error) {
       console.error("사용자 정보 가져오기 오류:", error)
@@ -49,7 +47,7 @@ export const useUsers = (): UseUsersReturn => {
   }
 
   return {
-    selectedUser: selectedUser || null,
+    selectedUser,
     showUserModal,
     openUserModal,
     setShowUserModal,

@@ -1,7 +1,15 @@
-import type { UserModalProps } from "../types"
+import { useUIStore, useUserStore } from "../stores"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./index"
 
-const UserModal = ({ user, isOpen, onClose }: UserModalProps) => {
+const UserModal = () => {
+  // Zustand 스토어 직접 사용
+  const { selectedUser } = useUserStore()
+  const { showUserModal, setShowUserModal } = useUIStore()
+
+  const user = selectedUser
+  const isOpen = showUserModal
+  const onClose = () => setShowUserModal(false)
+
   if (!user) return null
 
   return (
