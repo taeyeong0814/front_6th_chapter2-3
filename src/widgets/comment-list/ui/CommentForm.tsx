@@ -1,5 +1,5 @@
 import React from "react"
-import { useComments } from "../../../hooks"
+import { useCommentEntity } from "../../../entities/comment"
 import { useCommentStore, useUIStore } from "../../../shared/stores"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "../../../shared/ui"
 
@@ -10,7 +10,7 @@ const CommentForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     useUIStore()
 
   // 커스텀 훅에서 API 로직 가져오기
-  const { addComment, updateComment } = useComments()
+  const { addComment, updateComment } = useCommentEntity()
 
   const comment = isEdit ? selectedComment : newComment
   const isOpen = isEdit ? showEditCommentDialog : showAddCommentDialog

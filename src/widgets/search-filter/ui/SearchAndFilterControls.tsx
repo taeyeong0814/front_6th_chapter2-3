@@ -1,6 +1,6 @@
 import { Search } from "lucide-react"
 import { useEffect, useState } from "react"
-import { usePosts } from "../../../hooks"
+import { usePostEntity } from "../../../entities/post"
 import { fetchTagsAPI } from "../../../shared/api"
 import { usePostStore } from "../../../shared/stores"
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../shared/ui"
@@ -20,8 +20,8 @@ const SearchAndFilterControls = () => {
     clearSearch,
   } = usePostStore()
 
-  // usePosts 훅에서 refetchPosts 가져오기
-  const { refetchPosts } = usePosts(0, 10, searchQuery, selectedTag, sortOrder)
+  // usePostEntity 훅에서 refetchPosts 가져오기
+  const { refetchPosts } = usePostEntity(0, 10, searchQuery, selectedTag, sortOrder)
 
   // 태그 목록 상태
   const [tags, setTags] = useState<Array<{ slug: string; name: string; url: string }>>([])

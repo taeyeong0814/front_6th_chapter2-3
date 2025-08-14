@@ -1,5 +1,0 @@
-export { useComments } from "./useComments"
-export { usePagination } from "./usePagination"
-export { usePosts } from "./usePosts"
-export { useSearchAndFilter } from "./useSearchAndFilter.tsx"
-export { useUsers } from "./useUsers"

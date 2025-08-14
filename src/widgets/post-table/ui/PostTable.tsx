@@ -1,7 +1,9 @@
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import { useComments, usePosts, useSearchAndFilter } from "../../../hooks"
+import { useCommentEntity } from "../../../entities/comment"
+import { usePostEntity } from "../../../entities/post"
 import { fetchUserAPI } from "../../../shared/api"
+import { highlightText } from "../../../shared/lib"
 import { usePostStore, useUIStore, useUserStore } from "../../../shared/stores"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../shared/ui"
 
@@ -25,7 +27,7 @@ export const PostTable: React.FC = () => {
   const { setShowUserModal } = useUIStore()
 
   // 커스텀 훅에서 데이터 가져오기
-  const { posts: originalPosts, deletePost } = usePosts(0, 10, searchQuery, selectedTag, sortOrder)
+  const { posts: originalPosts, deletePost } = usePostEntity(0, 10, searchQuery, selectedTag, sortOrder)
 
   // 실제로 검색을 실행했을 때만 검색 결과를 사용
   const posts = hasSearched && isSearchActive && searchResults ? searchResults : originalPosts
@@ -34,7 +36,7 @@ export const PostTable: React.FC = () => {
   const sortedPosts = React.useMemo(() => {
     if (!sortBy || sortBy === "none") return posts
 
-    return [...posts].sort((a, b) => {
+    return [...posts].sort((a: any, b: any) => {
       let aValue: any
       let bValue: any
 
@@ -63,8 +65,7 @@ export const PostTable: React.FC = () => {
     })
   }, [posts, sortBy, sortOrder])
 
-  const { highlightText } = useSearchAndFilter()
-  const { fetchComments } = useComments()
+  const { fetchComments } = useCommentEntity()
 
   // 이벤트 핸들러들
   const handleTagClick = (tag: string) => {
@@ -109,7 +110,7 @@ export const PostTable: React.FC = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sortedPosts.map((post) => (
+        {sortedPosts.map((post: any) => (
           <TableRow key={post.id}>
             <TableCell>{post.id}</TableCell>
             <TableCell>

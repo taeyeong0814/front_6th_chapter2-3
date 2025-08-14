@@ -1,4 +1,4 @@
-import { useSearchAndFilter } from "../../../hooks"
+import { highlightText } from "../../../shared/lib"
 import { usePostStore, useUIStore } from "../../../shared/stores"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../../shared/ui"
 import { CommentList } from "../../comment-list/ui/CommentList"
@@ -9,7 +9,6 @@ const PostDetailDialog = () => {
   const { showPostDetailDialog, setShowPostDetailDialog } = useUIStore()
 
   // 커스텀 훅에서 데이터 가져오기
-  const { highlightText } = useSearchAndFilter()
 
   const post = selectedPost
   const isOpen = showPostDetailDialog

@@ -1,10 +1,6 @@
 import { Plus } from "lucide-react"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import Pagination from "../../components/Pagination"
-import PostForm from "../../components/PostForm"
-import UserModal from "../../components/UserModal"
-import { usePagination, usePosts } from "../../hooks"
 import { updateURLParam } from "../../shared/lib"
 import { usePostStore, useUIStore } from "../../shared/stores"
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../shared/ui"
@@ -23,21 +19,15 @@ const PostsManager = () => {
 
   const { setShowAddPostDialog: setShowAddDialog } = useUIStore()
 
-  // 커스텀 훅들 사용 (API 로직은 유지)
-  const { skip, limit, setSkip, setLimit } = usePagination()
-  const { total, loading } = usePosts(skip, limit, searchQuery, selectedTag)
-
   // URL 업데이트 함수
-  const updateURL = () => {
+  const updateURL = useCallback(() => {
     const params = new URLSearchParams()
-    updateURLParam(params, "skip", skip)
-    updateURLParam(params, "limit", limit)
     updateURLParam(params, "search", searchQuery)
     updateURLParam(params, "tag", selectedTag)
     updateURLParam(params, "sortBy", sortBy)
     updateURLParam(params, "sortOrder", sortOrder)
     navigate(`?${params.toString()}`)
-  }
+  }, [searchQuery, selectedTag, sortBy, sortOrder, navigate])
 
   // URL 파라미터 동기화 (URL → 상태)
   useEffect(() => {
@@ -51,7 +41,7 @@ const PostsManager = () => {
   // 상태 변경 시 URL 업데이트 (상태 → URL)
   useEffect(() => {
     updateURL()
-  }, [skip, limit, searchQuery, selectedTag, sortBy, sortOrder])
+  }, [updateURL])
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -70,18 +60,11 @@ const PostsManager = () => {
           <SearchAndFilterControls />
 
           {/* 게시물 테이블 */}
-          {loading ? <div className="flex justify-center p-4">로딩 중...</div> : <PostTable />}
+          <PostTable />
 
-          {/* 페이지네이션 */}
-          <Pagination skip={skip} limit={limit} total={total} onLimitChange={setLimit} onSkipChange={setSkip} />
+          {/* 페이지네이션은 PostTable 내부에서 처리 */}
         </div>
       </CardContent>
-
-      {/* 게시물 폼 */}
-      <PostForm isEdit={false} />
-
-      {/* 게시물 수정 폼 */}
-      <PostForm isEdit={true} />
 
       {/* 댓글 추가 대화상자 */}
       <CommentForm isEdit={false} />
@@ -91,9 +74,6 @@ const PostsManager = () => {
 
       {/* 게시물 상세 보기 대화상자 */}
       <PostDetailDialog />
-
-      {/* 사용자 모달 */}
-      <UserModal />
     </Card>
   )
 }

@@ -1,6 +1,7 @@
 import { Edit2, Plus, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
-import { useComments, useSearchAndFilter } from "../../../hooks"
+import { useCommentEntity } from "../../../entities/comment"
+import { highlightText } from "../../../shared/lib"
 import { useCommentStore, usePostStore, useUIStore } from "../../../shared/stores"
 import { Button } from "../../../shared/ui"
 
@@ -11,9 +12,8 @@ export const CommentList: React.FC = () => {
   const { setShowAddCommentDialog, setShowEditCommentDialog } = useUIStore()
 
   // 커스텀 훅에서 데이터 가져오기
-  const { comments, deleteComment, likeComment, fetchComments } = useComments()
+  const { comments, deleteComment, likeComment, fetchComments } = useCommentEntity()
   const { searchQuery, selectedPost } = usePostStore()
-  const { highlightText } = useSearchAndFilter()
   const { setNewComment } = useCommentStore()
 
   // 현재 선택된 게시물의 댓글만 가져오기
@@ -55,7 +55,7 @@ export const CommentList: React.FC = () => {
       </div>
       <div className="space-y-1">
         {selectedPost &&
-          comments[selectedPost.id]?.map((comment: any) => (
+          (comments as any)[selectedPost.id]?.map((comment: any) => (
             <div key={comment.id} className="flex items-center justify-between text-sm border-b pb-1">
               <div className="flex items-center space-x-2 overflow-hidden">
                 <span className="font-medium truncate">{comment.user.username}:</span>
