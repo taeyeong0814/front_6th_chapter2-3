@@ -1,19 +1,22 @@
 import axios from "axios"
 
+// 환경별 API base URL 설정
+const API_BASE_URL = process.env.NODE_ENV === "development" ? "/api" : "https://dummyjson.com"
+
 // Axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "/api", // Vite proxy 설정에 맞춰 /api로 설정
+  baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: false, // 이거 추가 안하면 CORS 에러 뜸
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
 })
 
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
-    // 요청 전에 수행할 작업
-    console.log("API 요청:", config.method?.toUpperCase(), config.url)
     return config
   },
   (error) => {
@@ -28,8 +31,6 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    // 오류 응답을 처리
-    console.error("API 오류:", error.response?.status, error.response?.data)
     return Promise.reject(error)
   },
 )
