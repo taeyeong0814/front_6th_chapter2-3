@@ -10,22 +10,7 @@ import SearchAndFilterControls from "../components/SearchAndFilterControls"
 import UserModal from "../components/UserModal"
 import { useComments, usePagination, usePosts, useSearchAndFilter, useUsers } from "../hooks"
 
-interface Post {
-  id: number
-  title: string
-  body: string
-  userId: number
-  tags?: string[]
-  reactions?: {
-    likes: number
-    dislikes: number
-  }
-  author?: {
-    id: number
-    username: string
-    image: string
-  }
-}
+import type { Post } from "../types"
 
 const PostsManager = () => {
   const location = useLocation()

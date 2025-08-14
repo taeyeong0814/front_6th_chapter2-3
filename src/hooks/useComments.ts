@@ -1,17 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-
-interface Comment {
-  id: number
-  body: string
-  postId: number
-  userId: number
-  likes: number
-  user: {
-    id: number
-    username: string
-  }
-}
+import type { Comment, CommentFormData, CommentUpdateData } from "../types"
 
 // API 함수들
 const fetchCommentsAPI = async (postId: number) => {
@@ -20,7 +9,7 @@ const fetchCommentsAPI = async (postId: number) => {
   return data.comments
 }
 
-const addCommentAPI = async (comment: { body: string; postId: number; userId: number }) => {
+const addCommentAPI = async (comment: CommentFormData) => {
   const response = await fetch("/api/comments/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -29,7 +18,7 @@ const addCommentAPI = async (comment: { body: string; postId: number; userId: nu
   return response.json()
 }
 
-const updateCommentAPI = async (comment: { id: number; body: string }) => {
+const updateCommentAPI = async (comment: CommentUpdateData) => {
   const response = await fetch(`/api/comments/${comment.id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

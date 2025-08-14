@@ -1,60 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-
-interface User {
-  id: number
-  username: string
-  image: string
-  email?: string
-  firstName?: string
-  lastName?: string
-  age?: number
-  gender?: string
-  phone?: string
-  birthDate?: string
-  eyeColor?: string
-  height?: number
-  weight?: number
-  domain?: string
-  ip?: string
-  address?: {
-    address: string
-    city: string
-    coordinates: {
-      lat: number
-      lng: number
-    }
-    postalCode: string
-    state: string
-  }
-  macAddress?: string
-  university?: string
-  bank?: {
-    cardExpire: string
-    cardNumber: string
-    cardType: string
-    currency: string
-    iban: string
-  }
-  company?: {
-    address: {
-      address: string
-      city: string
-      coordinates: {
-        lat: number
-        lng: number
-      }
-      postalCode: string
-      state: string
-    }
-    department: string
-    name: string
-    title: string
-  }
-  ein?: string
-  ssn?: string
-  userAgent?: string
-}
+import type { User } from "../types"
 
 // API 함수
 const fetchUserAPI = async (userId: number) => {

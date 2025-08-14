@@ -1,31 +1,6 @@
 import { ThumbsDown, ThumbsUp } from "lucide-react"
 import React from "react"
-
-interface Post {
-  id: number
-  title: string
-  body: string
-  userId: number
-  tags?: string[]
-  reactions?: {
-    likes: number
-    dislikes: number
-  }
-  author?: {
-    id: number
-    username: string
-    image: string
-  }
-}
-
-interface PostCardProps {
-  post: Post
-  searchQuery: string
-  selectedTag: string
-  highlightText: (text: string, highlight: string) => React.ReactElement | null
-  onTagClick: (tag: string) => void
-  onUserClick: (user: { id: number; username: string; image: string }) => void
-}
+import type { PostCardProps } from "../types"
 
 export const PostCard: React.FC<PostCardProps> = ({
   post,

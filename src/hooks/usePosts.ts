@@ -1,22 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-
-interface Post {
-  id: number
-  title: string
-  body: string
-  userId: number
-  tags?: string[]
-  reactions?: {
-    likes: number
-    dislikes: number
-  }
-  author?: {
-    id: number
-    username: string
-    image: string
-  }
-}
+import type { Post, PostFormData } from "../types"
 
 // API 함수들
 const fetchPostsAPI = async (skip: number, limit: number) => {
@@ -30,7 +14,7 @@ const fetchPostsAPI = async (skip: number, limit: number) => {
 
   const postsWithUsers = postsData.posts.map((post: Post) => ({
     ...post,
-    author: usersData.users.find((user: any) => user.id === post.userId),
+    author: usersData.users.find((user: { id: number; username: string; image: string }) => user.id === post.userId),
   }))
 
   return { posts: postsWithUsers, total: postsData.total }
@@ -53,13 +37,13 @@ const fetchPostsByTagAPI = async (tag: string) => {
 
   const postsWithUsers = postsData.posts.map((post: Post) => ({
     ...post,
-    author: usersData.users.find((user: any) => user.id === post.userId),
+    author: usersData.users.find((user: { id: number; username: string; image: string }) => user.id === post.userId),
   }))
 
   return { posts: postsWithUsers, total: postsData.total }
 }
 
-const addPostAPI = async (post: { title: string; body: string; userId: number }) => {
+const addPostAPI = async (post: PostFormData) => {
   const response = await fetch("/api/posts/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

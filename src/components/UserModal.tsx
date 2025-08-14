@@ -1,30 +1,5 @@
+import type { UserModalProps } from "../types"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./index"
-
-interface User {
-  id: number
-  username: string
-  firstName?: string
-  lastName?: string
-  email?: string
-  phone?: string
-  age?: number
-  image?: string
-  address?: {
-    address: string
-    city: string
-    state: string
-  }
-  company?: {
-    name: string
-    title: string
-  }
-}
-
-interface UserModalProps {
-  user: User | null
-  isOpen: boolean
-  onClose: () => void
-}
 
 const UserModal = ({ user, isOpen, onClose }: UserModalProps) => {
   if (!user) return null

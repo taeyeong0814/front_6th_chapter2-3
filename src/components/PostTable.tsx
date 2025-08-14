@@ -1,35 +1,7 @@
 import { Edit2, MessageSquare, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
+import type { PostTableProps } from "../types"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./index"
-
-interface Post {
-  id: number
-  title: string
-  body: string
-  userId: number
-  tags?: string[]
-  reactions?: {
-    likes: number
-    dislikes: number
-  }
-  author?: {
-    id: number
-    username: string
-    image: string
-  }
-}
-
-interface PostTableProps {
-  posts: Post[]
-  searchQuery: string
-  selectedTag: string
-  highlightText: (text: string, highlight: string) => React.ReactElement | null
-  onTagClick: (tag: string) => void
-  onUserClick: (user: { id: number; username: string; image: string }) => void
-  onPostDetailClick: (post: Post) => void
-  onPostEditClick: (post: Post) => void
-  onPostDeleteClick: (postId: number) => void
-}
 
 export const PostTable: React.FC<PostTableProps> = ({
   posts,

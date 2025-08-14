@@ -1,30 +1,7 @@
 import { Edit2, MessageSquare, Trash2 } from "lucide-react"
 import React from "react"
+import type { PostActionsProps } from "../types"
 import { Button } from "./index"
-
-interface Post {
-  id: number
-  title: string
-  body: string
-  userId: number
-  tags?: string[]
-  reactions?: {
-    likes: number
-    dislikes: number
-  }
-  author?: {
-    id: number
-    username: string
-    image: string
-  }
-}
-
-interface PostActionsProps {
-  post: Post
-  onDetailClick: (post: Post) => void
-  onEditClick: (post: Post) => void
-  onDeleteClick: (postId: number) => void
-}
 
 export const PostActions: React.FC<PostActionsProps> = ({ post, onDetailClick, onEditClick, onDeleteClick }) => {
   return (

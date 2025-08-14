@@ -1,21 +1,6 @@
 import React from "react"
+import type { CommentFormProps } from "../types"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "./index"
-
-interface Comment {
-  id?: number
-  body: string
-  postId: number | null
-  userId: number
-}
-
-interface CommentFormProps {
-  comment: Comment | null
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: () => void
-  onBodyChange: (body: string) => void
-  isEdit?: boolean
-}
 
 const CommentForm = ({ comment, isOpen, onClose, onSubmit, onBodyChange, isEdit = false }: CommentFormProps) => {
   if (!comment) return null

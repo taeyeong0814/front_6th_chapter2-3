@@ -1,19 +1,5 @@
+import type { PostDetailDialogProps } from "../types"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./index"
-
-interface Post {
-  id?: number
-  title?: string
-  body?: string
-}
-
-interface PostDetailDialogProps {
-  post: Post | null
-  isOpen: boolean
-  onClose: () => void
-  searchQuery: string
-  highlightText: (text: string, highlight: string) => React.ReactNode
-  renderComments: (postId?: number) => React.ReactNode
-}
 
 const PostDetailDialog = ({
   post,

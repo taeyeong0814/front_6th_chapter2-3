@@ -1,29 +1,7 @@
 import { Edit2, Plus, ThumbsUp, Trash2 } from "lucide-react"
 import React from "react"
+import type { CommentListProps } from "../types"
 import { Button } from "./index"
-
-interface Comment {
-  id: number
-  body: string
-  postId: number
-  userId: number
-  likes: number
-  user: {
-    id: number
-    username: string
-  }
-}
-
-interface CommentListProps {
-  comments: Comment[]
-  postId: number
-  searchQuery: string
-  highlightText: (text: string, highlight: string) => React.ReactElement | null
-  onAddComment: () => void
-  onLikeComment: (commentId: number, postId: number) => void
-  onEditComment: (comment: Comment) => void
-  onDeleteComment: (commentId: number, postId: number) => void
-}
 
 export const CommentList: React.FC<CommentListProps> = ({
   comments,

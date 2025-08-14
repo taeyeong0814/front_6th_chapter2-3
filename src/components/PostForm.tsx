@@ -1,22 +1,5 @@
+import type { PostFormProps } from "../types"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea } from "./index"
-
-interface Post {
-  id?: number
-  title: string
-  body: string
-  userId: number
-}
-
-interface PostFormProps {
-  post: Post | null
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: () => void
-  onTitleChange: (title: string) => void
-  onBodyChange: (body: string) => void
-  onUserIdChange: (userId: number) => void
-  isEdit?: boolean
-}
 
 const PostForm = ({
   post,
